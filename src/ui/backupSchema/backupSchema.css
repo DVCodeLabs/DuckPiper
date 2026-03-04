@@ -1,0 +1,366 @@
+:root {
+  color-scheme: light;
+
+  --ct-bg: hsl(0 0% 97.5%);
+  --ct-surface: hsl(0 0% 100%);
+  --ct-surface-soft: hsl(210 20% 98%);
+  --ct-border: hsl(214 12% 82%);
+  --ct-border-strong: hsl(214 12% 74%);
+  --ct-text: hsl(222 47% 11%);
+  --ct-muted: hsl(215 16% 47%);
+  --ct-accent: hsl(221 83% 53%);
+  --ct-accent-soft: hsl(221 83% 53% / 0.12);
+  --ct-accent-strong: hsl(221 83% 43%);
+  --ct-danger: hsl(0 72% 51%);
+  --ct-danger-soft: hsl(0 72% 51% / 0.08);
+  --ct-shadow: 0 1px 3px hsl(222 47% 11% / 0.06), 0 1px 2px hsl(222 47% 11% / 0.04);
+  --ct-shadow-md: 0 4px 12px hsl(222 47% 11% / 0.08);
+  --ct-ring: 0 0 0 2px var(--ct-surface), 0 0 0 4px var(--ct-accent);
+  --ct-placeholder: hsl(215 16% 62%);
+  --ct-active-bg: hsl(210 12% 93%);
+  --ct-success: hsl(142 71% 38%);
+  --ct-success-soft: hsl(142 71% 38% / 0.1);
+}
+
+body.vscode-dark,
+body.vscode-high-contrast {
+  color-scheme: dark;
+
+  --ct-bg: hsl(220 13% 10%);
+  --ct-surface: hsl(220 10% 16%);
+  --ct-surface-soft: hsl(220 10% 13%);
+  --ct-border: hsl(220 6% 28%);
+  --ct-border-strong: hsl(220 6% 38%);
+  --ct-text: hsl(210 20% 92%);
+  --ct-muted: hsl(215 10% 55%);
+  --ct-accent: hsl(221 83% 60%);
+  --ct-accent-soft: hsl(221 83% 60% / 0.15);
+  --ct-accent-strong: hsl(221 83% 70%);
+  --ct-danger: hsl(0 72% 60%);
+  --ct-danger-soft: hsl(0 72% 60% / 0.15);
+  --ct-shadow: 0 1px 3px hsl(0 0% 0% / 0.3), 0 1px 2px hsl(0 0% 0% / 0.2);
+  --ct-shadow-md: 0 4px 12px hsl(0 0% 0% / 0.4);
+  --ct-ring: 0 0 0 2px var(--ct-surface), 0 0 0 4px var(--ct-accent);
+  --ct-placeholder: hsl(215 10% 45%);
+  --ct-active-bg: hsl(220 10% 20%);
+  --ct-success: hsl(142 71% 50%);
+  --ct-success-soft: hsl(142 71% 50% / 0.15);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--ct-bg);
+  color: var(--ct-text);
+  font-family: var(--vscode-font-family, 'Segoe UI', 'SF Pro Text', system-ui, sans-serif);
+}
+
+/* ── Root layout ────────────────────────────────── */
+
+.backup-schema-root {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 12px;
+}
+
+/* ── Cards ──────────────────────────────────────── */
+
+.backup-card {
+  border: 1px solid var(--ct-border);
+  border-radius: 8px;
+  padding: 16px;
+  background: var(--ct-surface);
+  box-shadow: var(--ct-shadow);
+}
+
+/* ── Header ─────────────────────────────────────── */
+
+.backup-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.backup-header h1 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ct-text);
+}
+
+.backup-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 500;
+  background: var(--ct-accent-soft);
+  color: var(--ct-accent);
+  white-space: nowrap;
+}
+
+.backup-badge.dialect {
+  background: var(--ct-surface-soft);
+  color: var(--ct-muted);
+  border: 1px solid var(--ct-border);
+}
+
+/* ── File path section ──────────────────────────── */
+
+.backup-file-section label {
+  display: block;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--ct-muted);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.file-path-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.file-path-row input[type="text"] {
+  flex: 1;
+  height: 30px;
+  padding: 0 8px;
+  border: 1px solid var(--ct-border);
+  border-radius: 4px;
+  background: var(--ct-bg);
+  color: var(--ct-text);
+  font-size: 11px;
+  font-family: var(--vscode-editor-font-family, 'Menlo', 'Consolas', monospace);
+  outline: none;
+  transition: border-color 150ms ease;
+}
+
+.file-path-row input[type="text"]:focus {
+  border-color: var(--ct-accent);
+  box-shadow: var(--ct-ring);
+}
+
+.file-path-row input[type="text"]::placeholder {
+  color: var(--ct-placeholder);
+}
+
+/* ── Buttons ────────────────────────────────────── */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 30px;
+  padding: 0 12px;
+  border: 1px solid var(--ct-border);
+  border-radius: 4px;
+  background: var(--ct-surface);
+  color: var(--ct-text);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 150ms ease, border-color 150ms ease;
+}
+
+.btn:hover {
+  background: var(--ct-surface-soft);
+  border-color: var(--ct-border-strong);
+}
+
+.btn:active {
+  background: var(--ct-active-bg);
+}
+
+.btn-primary {
+  background: var(--ct-accent);
+  border-color: var(--ct-accent);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: var(--ct-accent-strong);
+  border-color: var(--ct-accent-strong);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary:disabled:hover {
+  background: var(--ct-accent);
+  border-color: var(--ct-accent);
+}
+
+/* ── Section headers ────────────────────────────── */
+
+.option-section-title {
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ct-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* ── Option groups (bordered list) ──────────────── */
+
+.option-group {
+  border: 1px solid var(--ct-border);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+
+.option-group:last-child {
+  margin-bottom: 0;
+}
+
+/* ── Toggle row ─────────────────────────────────── */
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: background 120ms ease;
+  user-select: none;
+}
+
+.toggle-row:hover {
+  background: var(--ct-surface-soft);
+}
+
+.toggle-row + .toggle-row {
+  border-top: 1px solid var(--ct-border);
+}
+
+.toggle-row.disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.toggle-row.disabled:hover {
+  background: transparent;
+}
+
+.toggle-label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.toggle-label-text {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ct-text);
+}
+
+.toggle-description {
+  font-size: 10px;
+  color: var(--ct-muted);
+}
+
+/* ── Toggle switch ──────────────────────────────── */
+
+.toggle-switch {
+  position: relative;
+  width: 36px;
+  height: 20px;
+  border-radius: 10px;
+  background: var(--ct-border-strong);
+  cursor: pointer;
+  transition: background 200ms ease;
+  flex-shrink: 0;
+}
+
+.toggle-switch.on {
+  background: var(--ct-accent);
+}
+
+.toggle-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: white;
+  transition: transform 200ms ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-switch.on .toggle-knob {
+  transform: translateX(16px);
+}
+
+/* ── Footer ─────────────────────────────────────── */
+
+.backup-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 4px;
+}
+
+/* ── Status banner ──────────────────────────────── */
+
+.backup-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.backup-status.info {
+  background: var(--ct-accent-soft);
+  color: var(--ct-accent);
+}
+
+.backup-status.error {
+  background: var(--ct-danger-soft);
+  color: var(--ct-danger);
+}
+
+.backup-status.success {
+  background: var(--ct-success-soft);
+  color: var(--ct-success);
+}
+
+/* ── Spinner ────────────────────────────────────── */
+
+.spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--ct-accent-soft);
+  border-top-color: var(--ct-accent);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

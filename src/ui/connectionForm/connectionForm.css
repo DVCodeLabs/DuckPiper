@@ -1,0 +1,453 @@
+:root {
+  color-scheme: light;
+
+  --ct-bg: hsl(0 0% 97.5%);
+  --ct-surface: hsl(0 0% 100%);
+  --ct-surface-soft: hsl(210 20% 98%);
+  --ct-border: hsl(214 12% 82%);
+  --ct-border-strong: hsl(214 12% 74%);
+  --ct-text: hsl(222 47% 11%);
+  --ct-muted: hsl(215 16% 47%);
+  --ct-accent: hsl(221 83% 53%);
+  --ct-accent-soft: hsl(221 83% 53% / 0.12);
+  --ct-accent-strong: hsl(221 83% 43%);
+  --ct-danger: hsl(0 72% 51%);
+  --ct-danger-soft: hsl(0 72% 51% / 0.08);
+  --ct-ring: 0 0 0 2px var(--ct-surface), 0 0 0 4px var(--ct-accent);
+  --ct-placeholder: hsl(215 16% 62%);
+  --ct-active-bg: hsl(210 12% 93%);
+  --ct-error-bg: hsl(0 100% 98%);
+}
+
+body.vscode-dark,
+body.vscode-high-contrast {
+  color-scheme: dark;
+
+  --ct-bg: hsl(220 13% 10%);
+  --ct-surface: hsl(220 10% 16%);
+  --ct-surface-soft: hsl(220 10% 13%);
+  --ct-border: hsl(220 6% 28%);
+  --ct-border-strong: hsl(220 6% 38%);
+  --ct-text: hsl(210 20% 92%);
+  --ct-muted: hsl(215 10% 55%);
+  --ct-accent: hsl(221 83% 60%);
+  --ct-accent-soft: hsl(221 83% 60% / 0.15);
+  --ct-accent-strong: hsl(221 83% 70%);
+  --ct-danger: hsl(0 72% 60%);
+  --ct-danger-soft: hsl(0 72% 60% / 0.15);
+  --ct-ring: 0 0 0 2px var(--ct-surface), 0 0 0 4px var(--ct-accent);
+  --ct-placeholder: hsl(215 10% 45%);
+  --ct-active-bg: hsl(220 10% 20%);
+  --ct-error-bg: hsl(0 50% 15%);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--ct-bg);
+  color: var(--ct-text);
+  font-family: var(--vscode-font-family, 'Segoe UI', 'SF Pro Text', system-ui, sans-serif);
+}
+
+/* ── Root layout ────────────────────────────────── */
+
+.connection-form-root {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 11px;
+}
+
+/* ── Cards ──────────────────────────────────────── */
+
+.cf-card {
+  border: 1px solid var(--ct-border);
+  border-radius: 8px;
+  padding: 14px;
+  background: var(--ct-surface);
+}
+
+/* ── Header ─────────────────────────────────────── */
+
+.cf-card h2 {
+  margin: 0 0 2px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ct-text);
+}
+
+/* ── Labels & Inputs ────────────────────────────── */
+
+label {
+  display: block;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--ct-muted);
+}
+
+input,
+select,
+button,
+textarea {
+  font: inherit;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  border: 1px solid var(--ct-border);
+  background: var(--ct-surface);
+  color: var(--ct-text);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 11px;
+  min-height: 26px;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--ct-placeholder);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--ct-accent);
+  outline: none;
+  box-shadow: var(--ct-ring);
+}
+
+textarea {
+  resize: vertical;
+  font-family: var(--vscode-editor-font-family, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace);
+}
+
+/* ── Buttons ────────────────────────────────────── */
+
+button {
+  border: 1px solid var(--ct-border);
+  border-radius: 6px;
+  padding: 3px 10px;
+  min-height: 26px;
+  font-size: 10px;
+  font-weight: 500;
+  cursor: pointer;
+  background: var(--ct-surface);
+  color: var(--ct-text);
+  transition: border-color 150ms ease, background 150ms ease, color 150ms ease;
+}
+
+button:hover:not(:disabled) {
+  border-color: var(--ct-border-strong);
+  background: var(--ct-surface-soft);
+}
+
+button:active:not(:disabled) {
+  background: var(--ct-active-bg);
+}
+
+button.primary {
+  border-color: var(--ct-accent);
+  background: var(--ct-accent);
+  color: hsl(0 0% 100%);
+  font-weight: 600;
+}
+
+button.primary:hover:not(:disabled) {
+  border-color: var(--ct-accent-strong);
+  background: var(--ct-accent-strong);
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* ── Top fields (type, name, tag) ─────────────── */
+
+.cf-top-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.cf-top-fields .cf-field-full {
+  grid-column: 1 / -1;
+}
+
+.cf-field label span {
+  display: block;
+  margin-bottom: 4px;
+}
+
+/* ── Tabs ──────────────────────────────────────── */
+
+.cf-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--ct-border);
+  gap: 0;
+}
+
+.cf-tab {
+  padding: 6px 14px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--ct-muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: color 150ms ease, border-color 150ms ease;
+  user-select: none;
+}
+
+.cf-tab:hover {
+  color: var(--ct-text);
+}
+
+.cf-tab.active {
+  color: var(--ct-text);
+  font-weight: 600;
+  border-bottom-color: var(--ct-accent);
+}
+
+/* ── Tab content ───────────────────────────────── */
+
+.cf-tab-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+/* ── Provider fields grid ──────────────────────── */
+
+.cf-fields-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.cf-field {
+  width: 100%;
+}
+
+.cf-field.half {
+  width: calc(50% - 5px);
+}
+
+.cf-field-description {
+  margin-top: 3px;
+  font-size: 10px;
+  color: var(--ct-muted);
+}
+
+/* ── Checkbox field ────────────────────────────── */
+
+.cf-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--ct-text);
+}
+
+.cf-checkbox-label input[type="checkbox"] {
+  width: auto;
+  min-height: auto;
+  accent-color: var(--ct-accent);
+  cursor: pointer;
+}
+
+/* ── Radio field ───────────────────────────────── */
+
+.cf-radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cf-radio-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--ct-text);
+}
+
+.cf-radio-label input[type="radio"] {
+  width: auto;
+  min-height: auto;
+  accent-color: var(--ct-accent);
+  cursor: pointer;
+}
+
+/* ── File field ────────────────────────────────── */
+
+.cf-file-row {
+  display: flex;
+  gap: 6px;
+}
+
+.cf-file-row input {
+  flex: 1;
+}
+
+/* ── Credential storage section ────────────────── */
+
+.cf-credential-section {
+  margin-top: 6px;
+  border-top: 1px solid var(--ct-border);
+  padding-top: 10px;
+}
+
+.cf-credential-section .cf-section-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--ct-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 8px;
+}
+
+.cf-credential-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--ct-text);
+}
+
+.cf-credential-option input[type="radio"] {
+  width: auto;
+  min-height: auto;
+  margin-top: 2px;
+  accent-color: var(--ct-accent);
+  cursor: pointer;
+}
+
+.cf-credential-option strong {
+  font-weight: 600;
+}
+
+.cf-credential-option .cf-credential-hint {
+  font-size: 10px;
+  color: var(--ct-muted);
+  margin-top: 1px;
+}
+
+/* ── Provider actions row ──────────────────────── */
+
+.cf-actions-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.cf-action-link {
+  color: var(--ct-accent);
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 11px;
+  background: none;
+  border: none;
+  padding: 0;
+  min-height: auto;
+}
+
+.cf-action-link:hover {
+  color: var(--ct-accent-strong);
+  background: none;
+  border: none;
+}
+
+/* ── Status banner ─────────────────────────────── */
+
+.cf-status {
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 10px;
+  font-weight: 500;
+  border: 1px solid transparent;
+}
+
+.cf-status.info {
+  color: hsl(213 55% 30%);
+  background: hsl(213 80% 95%);
+  border-color: hsl(213 60% 85%);
+}
+
+.cf-status.success {
+  color: hsl(142 55% 25%);
+  background: hsl(142 60% 95%);
+  border-color: hsl(142 40% 82%);
+}
+
+.cf-status.error {
+  color: hsl(0 55% 35%);
+  background: hsl(0 60% 96%);
+  border-color: hsl(0 50% 85%);
+}
+
+body.vscode-dark .cf-status.info,
+body.vscode-high-contrast .cf-status.info {
+  color: hsl(213 80% 72%);
+  background: hsl(213 50% 16%);
+  border-color: hsl(213 40% 28%);
+}
+
+body.vscode-dark .cf-status.success,
+body.vscode-high-contrast .cf-status.success {
+  color: hsl(142 60% 65%);
+  background: hsl(142 40% 14%);
+  border-color: hsl(142 30% 25%);
+}
+
+body.vscode-dark .cf-status.error,
+body.vscode-high-contrast .cf-status.error {
+  color: hsl(0 70% 68%);
+  background: hsl(0 45% 15%);
+  border-color: hsl(0 40% 26%);
+}
+
+/* ── Sticky footer ─────────────────────────────── */
+
+.cf-footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 0 4px;
+  background: var(--ct-bg);
+  backdrop-filter: blur(4px);
+}
+
+.cf-footer button {
+  font-size: 11px;
+  padding: 4px 14px;
+  min-height: 28px;
+  border-radius: 6px;
+}
+
+/* ── Responsive ────────────────────────────────── */
+
+@media (max-width: 480px) {
+  .cf-top-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .cf-field.half {
+    width: 100%;
+  }
+}

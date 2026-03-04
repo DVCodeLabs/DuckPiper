@@ -1,0 +1,12 @@
+node_modules
+dist/
+.idea
+.vscode
+.DS_Store
+dp/system
+
+# Test artifacts
+coverage/
+*.log
+junit.xml
+.jest-cache/

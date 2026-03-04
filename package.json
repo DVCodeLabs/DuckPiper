@@ -1,0 +1,1191 @@
+{
+  "name": "duckpiper",
+  "displayName": "DuckPiper",
+  "description": "Local-first SQL, DuckDB notebooks, and pipelines in VS Code.",
+  "publisher": "duckpiper",
+  "icon": "media/icon.png",
+  "author": "Rob Darling",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/duckpiper/duckpiper.git"
+  },
+  "bugs": {
+    "url": "https://github.com/duckpiper/duckpiper/issues"
+  },
+  "homepage": "https://duckpiper.com",
+  "keywords": [
+    "vscode",
+    "vscode-extension",
+    "sql",
+    "duckdb",
+    "postgres",
+    "mysql",
+    "database",
+    "data-pipeline",
+    "etl",
+    "analytics",
+    "data-engineering",
+    "notebook",
+    "lineage",
+    "erd",
+    "ai"
+  ],
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.96.0"
+  },
+  "categories": [
+    "Data Science",
+    "Programming Languages",
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished",
+    "onLanguage:postgres",
+    "onNotebook:dp-notebook"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "notebooks": [
+      {
+        "type": "dp-notebook",
+        "displayName": "Transformation Notebook",
+        "selector": [
+          {
+            "filenamePattern": "*.dpnb"
+          }
+        ],
+        "priority": "default"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "dp.query.run",
+        "key": "shift+cmd+r",
+        "when": "editorTextFocus && resourceLangId == sql"
+      },
+      {
+        "command": "dp.query.runCurrentStatement",
+        "key": "shift+cmd+enter",
+        "when": "editorTextFocus && resourceLangId == sql"
+      }
+    ],
+    "commands": [
+      {
+        "command": "dp.actionsMenu",
+        "title": "DuckPiper: Actions"
+      },
+      {
+        "command": "dp.welcome.open",
+        "title": "DuckPiper: Open Welcome",
+        "icon": "$(rocket)"
+      },
+      {
+        "command": "dp.project.initialize",
+        "title": "DuckPiper: Initialize Project",
+        "icon": "$(folder)"
+      },
+      {
+        "command": "dp.duckdb.deleteObject",
+        "title": "DP: Delete Table/View",
+        "icon": {
+          "dark": "media/icons/lucide/dark/trash.svg",
+          "light": "media/icons/lucide/light/trash.svg"
+        }
+      },
+      {
+        "command": "dp.duckdb.exportTableToCsv",
+        "title": "DP: Download Table as CSV",
+        "icon": {
+          "dark": "media/icons/lucide/dark/download.svg",
+          "light": "media/icons/lucide/light/download.svg"
+        }
+      },
+      {
+        "command": "dp.connection.add",
+        "title": "DP: Add Connection",
+        "icon": {
+          "dark": "media/icons/lucide/dark/clipboard-plus.svg",
+          "light": "media/icons/lucide/light/clipboard-plus.svg"
+        }
+      },
+      {
+        "command": "dp.connection.edit",
+        "title": "DP: Edit Connection",
+        "icon": {
+          "dark": "media/icons/lucide/dark/clipboard-pen-line.svg",
+          "light": "media/icons/lucide/light/clipboard-pen-line.svg"
+        }
+      },
+      {
+        "command": "dp.connection.remove",
+        "title": "DP: Remove Connection",
+        "icon": {
+          "dark": "media/icons/lucide/dark/clipboard-x.svg",
+          "light": "media/icons/lucide/light/clipboard-x.svg"
+        }
+      },
+      {
+        "command": "dp.connection.test",
+        "title": "DP: Test Connection",
+        "icon": {
+          "dark": "media/icons/lucide/dark/clipboard-check.svg",
+          "light": "media/icons/lucide/light/clipboard-check.svg"
+        }
+      },
+      {
+        "command": "dp.connection.select",
+        "title": "DP: Set as default for new SQL files",
+        "icon": "$(pass)"
+      },
+      {
+        "command": "dp.connection.introspect",
+        "title": "DP: Refresh Schema (Introspect)",
+        "icon": {
+          "dark": "media/icons/lucide/dark/rotate-ccw.svg",
+          "light": "media/icons/lucide/light/rotate-ccw.svg"
+        }
+      },
+      {
+        "command": "dp.view.refreshConnections",
+        "title": "DP: Refresh Connections",
+        "icon": {
+          "dark": "media/icons/lucide/dark/rotate-cw.svg",
+          "light": "media/icons/lucide/light/rotate-cw.svg"
+        }
+      },
+      {
+        "command": "dp.view.refreshSchemas",
+        "title": "DP: Refresh All Schemas",
+        "icon": {
+          "dark": "media/icons/lucide/dark/rotate-ccw.svg",
+          "light": "media/icons/lucide/light/rotate-ccw.svg"
+        }
+      },
+      {
+        "command": "dp.view.refreshSavedQueries",
+        "title": "DP: Refresh Saved Queries",
+        "icon": {
+          "dark": "media/icons/lucide/dark/rotate-cw.svg",
+          "light": "media/icons/lucide/light/rotate-cw.svg"
+        }
+      },
+      {
+        "command": "dp.query.createSqlFile",
+        "title": "DP: Create SQL File",
+        "icon": {
+          "dark": "media/icons/lucide/dark/file-plus.svg",
+          "light": "media/icons/lucide/light/file-plus.svg"
+        }
+      },
+      {
+        "command": "dp.query.run",
+        "title": "DP: Run Query",
+        "icon": {
+          "dark": "media/icons/lucide/dark-filled/play.svg",
+          "light": "media/icons/lucide/light-filled/play.svg"
+        }
+      },
+      {
+        "command": "dp.query.runNoLimit",
+        "title": "DP: Run Query (No Limit)",
+        "icon": {
+          "dark": "media/icons/lucide/dark-filled/play.svg",
+          "light": "media/icons/lucide/light-filled/play.svg"
+        }
+      },
+      {
+        "command": "dp.query.runCurrentStatement",
+        "title": "DP: Run Current Statement",
+        "icon": {
+          "dark": "media/icons/lucide/dark-filled/play.svg",
+          "light": "media/icons/lucide/light-filled/play.svg"
+        }
+      },
+      {
+        "command": "dp.query.openTablePreview",
+        "title": "DP: Query Top 100",
+        "icon": {
+          "dark": "media/icons/lucide/dark/play.svg",
+          "light": "media/icons/lucide/light/play.svg"
+        }
+      },
+      {
+        "command": "dp.schema.createTable",
+        "title": "DP: Create Table in Schema",
+        "icon": {
+          "dark": "media/icons/lucide/dark/square-plus.svg",
+          "light": "media/icons/lucide/light/square-plus.svg"
+        }
+      },
+      {
+        "command": "dp.schema.editTable",
+        "title": "DP: Edit Table",
+        "icon": {
+          "dark": "media/icons/lucide/dark/square-pen.svg",
+          "light": "media/icons/lucide/light/square-pen.svg"
+        }
+      },
+      {
+        "command": "dp.schema.backupSchema",
+        "title": "DP: Backup Schema",
+        "icon": {
+          "dark": "media/icons/lucide/dark/database-backup.svg",
+          "light": "media/icons/lucide/light/database-backup.svg"
+        }
+      },
+      {
+        "command": "dp.system.saveLoadedResultsToDuckDB",
+        "title": "DP: Save Data Results to Duck_Piper Local DuckDB",
+        "icon": {
+          "dark": "media/icons/lucide/dark/database-zap.svg",
+          "light": "media/icons/lucide/light/database-zap.svg"
+        }
+      },
+      {
+        "command": "dp.system.saveTableDataToDuckDB",
+        "title": "DP: Load Table Data to Duck_Piper Local DuckDB",
+        "icon": {
+          "dark": "media/icons/lucide/dark/database-zap.svg",
+          "light": "media/icons/lucide/light/database-zap.svg"
+        }
+      },
+      {
+        "command": "dp.duckdb.importFile",
+        "title": "DP: Import File (CSV/Parquet)",
+        "icon": {
+          "dark": "media/icons/lucide/dark/upload.svg",
+          "light": "media/icons/lucide/light/upload.svg"
+        }
+      },
+      {
+        "command": "dp.query.addInlineComments",
+        "title": "DP: Add Inline Comments"
+      },
+      {
+        "command": "dp.query.generateMarkdownDoc",
+        "title": "DP: Create Markdown Description"
+      },
+      {
+        "command": "dp.query.findSimilarSavedQueries",
+        "title": "DP: A Similar Query Exists",
+        "icon": {
+          "dark": "media/icons/lucide/dark/search-alert.svg",
+          "light": "media/icons/lucide/light/search-alert.svg"
+        }
+      },
+      {
+        "command": "dp.schema.generateDescriptionsWithAI",
+        "title": "DP: Generate Descriptions (AI)",
+        "icon": {
+          "dark": "media/icons/lucide/dark/book-text.svg",
+          "light": "media/icons/lucide/light/book-text.svg"
+        }
+      },
+      {
+        "command": "dp.schema.generateDescriptionsLocalDuckDB",
+        "title": "DP: Generate Descriptions (Data Work)",
+        "icon": {
+          "dark": "media/icons/lucide/dark/book-text.svg",
+          "light": "media/icons/lucide/light/book-text.svg"
+        }
+      },
+      {
+        "command": "dp.openSettings",
+        "title": "DP: Settings",
+        "icon": "$(gear)"
+      },
+      {
+        "command": "dp.sql.formatDocument",
+        "title": "DP: Format SQL"
+      },
+      {
+        "command": "dp.ai.selectModel",
+        "title": "DP: Select AI Model",
+        "icon": "$(hubot)"
+      },
+      {
+        "command": "dp.erd.open",
+        "title": "DP: View ERD (Active Connection)",
+        "icon": "$(type-hierarchy)"
+      },
+      {
+        "command": "dp.erd.openLocalDuckDB",
+        "title": "DP: View ERD (Data Work DB)",
+        "icon": "$(type-hierarchy)"
+      },
+      {
+        "command": "dp.erd.openSchema",
+        "title": "DP: View ERD (Selected Schema)",
+        "icon": "$(type-hierarchy)"
+      },
+      {
+        "command": "dp.chart.createFromResults",
+        "title": "DP: Create Chart from Results (AI)"
+      },
+      {
+        "command": "dp.view.refreshLocalDuckDB",
+        "title": "DP: Refresh Transformation DB",
+        "icon": {
+          "dark": "media/icons/lucide/dark/rotate-ccw.svg",
+          "light": "media/icons/lucide/light/rotate-ccw.svg"
+        }
+      },
+      {
+        "command": "dp.transform.notebook.create",
+        "title": "DP: Create Transformation Notebook",
+        "icon": {
+          "dark": "media/icons/lucide/dark/book-plus.svg",
+          "light": "media/icons/lucide/light/book-plus.svg"
+        }
+      },
+      {
+        "command": "dp.query.renameBundle",
+        "title": "DP: Rename Query Bundle",
+        "icon": {
+          "dark": "media/icons/lucide/dark/file-stack.svg",
+          "light": "media/icons/lucide/light/file-stack.svg"
+        }
+      },
+      {
+        "command": "dp.schema.toggleSystemSchemas",
+        "title": "DP: Toggle System Schemas"
+      },
+      {
+        "command": "dp.editor.insertRoutineCall",
+        "title": "DP: Insert Routine Call"
+      },
+      {
+        "command": "dp.duckdb.deleteTable",
+        "title": "DP: Delete Table",
+        "icon": {
+          "dark": "media/icons/lucide/dark/trash.svg",
+          "light": "media/icons/lucide/light/trash.svg"
+        }
+      },
+      {
+        "command": "dp.duckdb.createIndex",
+        "title": "DP: Create Column Index"
+      },
+      {
+        "command": "dp.duckdb.dropIndex",
+        "title": "DP: Drop Column Index"
+      },
+      {
+        "command": "dp.connection.exportToCsv",
+        "title": "DP: Export to CSV (Generic)",
+        "icon": {
+          "dark": "media/icons/lucide/dark/download.svg",
+          "light": "media/icons/lucide/light/download.svg"
+        }
+      },
+      {
+        "command": "dp.transform.notebook.open",
+        "title": "DP: Open Transformation Notebook"
+      },
+      {
+        "command": "dp.pipeline.openLineage",
+        "title": "DP: View Lineage",
+        "icon": {
+          "dark": "media/icons/lucide/dark/combine.svg",
+          "light": "media/icons/lucide/light/combine.svg"
+        }
+      },
+      {
+        "command": "dp.duckdb.resetLayer",
+        "title": "DP: Delete all Tables/Views (Layer)",
+        "icon": {
+          "dark": "media/icons/lucide/dark/trash.svg",
+          "light": "media/icons/lucide/light/trash.svg"
+        }
+      },
+      {
+        "command": "dp.pipeline.resetOutputs",
+        "title": "DP: Delete Pipeline & Pipeline Outputs",
+        "icon": {
+          "dark": "media/icons/lucide/dark/trash.svg",
+          "light": "media/icons/lucide/light/trash.svg"
+        }
+      },
+      {
+        "command": "dp.memoryRecall.openQuery",
+        "title": "DP: Open Query from History"
+      },
+      {
+        "command": "dp.notebook.openLineage",
+        "title": "DP: View Lineage",
+        "icon": "$(git-branch)"
+      },
+      {
+        "command": "dp.notebook.generateMarkdownDoc",
+        "title": "DP: Document (AI)",
+        "icon": "$(markdown)"
+      },
+      {
+        "command": "dp.notebook.openMarkdownDoc",
+        "title": "DP: View Markdown Documentation",
+        "icon": "$(markdown)"
+      },
+      {
+        "command": "dp.query.openMarkdownDoc",
+        "title": "DP: View Markdown Documentation",
+        "icon": "$(markdown)"
+      },
+      {
+        "command": "dp.notebook.delete",
+        "title": "DP: Delete Notebook",
+        "icon": {
+          "dark": "media/icons/lucide/dark/trash.svg",
+          "light": "media/icons/lucide/light/trash.svg"
+        }
+      },
+      {
+        "command": "dp.pipelinesSidebar.refresh",
+        "title": "DP: Refresh Pipelines",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "dp.query.deleteSaved",
+        "title": "DP: Delete Saved Query",
+        "icon": {
+          "dark": "media/icons/lucide/dark/trash.svg",
+          "light": "media/icons/lucide/light/trash.svg"
+        }
+      },
+      {
+        "command": "dp.schema.selectForCompare",
+        "title": "Select for Compare"
+      },
+      {
+        "command": "dp.schema.compareWithSelected",
+        "title": "Compare with Selected"
+      },
+      {
+        "command": "dp.schema.compareSchemas",
+        "title": "DP: Compare Schemas..."
+      },
+      {
+        "command": "dp.schema.compareTables",
+        "title": "DP: Compare Tables..."
+      },
+      {
+        "command": "dp.schema.clearCompareSelection",
+        "title": "DP: Clear Compare Selection"
+      },
+      {
+        "command": "dp.query.search.focus",
+        "title": "DP: Focus Query Search"
+      },
+      {
+        "command": "dp.query.search.clear",
+        "title": "DP: Clear Query Search",
+        "icon": "$(clear-all)"
+      },
+      {
+        "command": "dp.query.search.rebuildIndex",
+        "title": "DP: Rebuild Search Index",
+        "icon": {
+          "dark": "media/icons/lucide/dark/rotate-cw.svg",
+          "light": "media/icons/lucide/light/rotate-cw.svg"
+        }
+      }
+    ],
+    "configuration": {
+      "title": "DuckPiper",
+      "properties": {
+        "dp.query.maxRowsLimit": {
+          "type": "number",
+          "default": 10000,
+          "minimum": 0,
+          "description": "DuckPiper: Hard LIMIT for rows returned by SELECT queries. Set to 0 for no LIMIT. Use the 'Run (no LIMIT)' button in an sql file to bypass this setting."
+        },
+        "dp.results.editing.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "DuckPiper: Enable inline editing and save-back in resultsets when connection and result safety checks allow it."
+        },
+        "dp.ai.provider": {
+          "type": "string",
+          "enum": [
+            "none",
+            "vscode",
+            "openai",
+            "anthropic",
+            "azureOpenAI",
+            "ollama",
+            "openaiCompatible"
+          ],
+          "default": "vscode",
+          "description": "DuckPiper: AI provider selection."
+        },
+        "dp.ai.model": {
+          "type": "string",
+          "default": "gpt-4o",
+          "markdownDescription": "DuckPiper: Model name (provider-specific). Use command [DP: Select AI Model](command:dp.ai.selectModel) to choose from all active VS Code models."
+        },
+        "dp.ai.endpoint": {
+          "type": "string",
+          "default": "",
+          "description": "DuckPiper: Custom endpoint for openaiCompatible or local providers."
+        },
+        "dp.ai.sendSchemaContext": {
+          "type": "boolean",
+          "default": true,
+          "description": "DuckPiper: Include schema + meta + relationships in AI prompts."
+        },
+        "dp.ai.maxSchemaChars": {
+          "type": "number",
+          "default": 150000,
+          "minimum": 1000,
+          "description": "DuckPiper: Approximate cap for schema context payload size (characters)."
+        },
+        "dp.ui.showRoutines": {
+          "type": "boolean",
+          "default": true,
+          "description": "DuckPiper: Show procedures and functions in the Explorer when introspection metadata is available."
+        },
+        "dp.ui.showRoutineParameters": {
+          "type": "boolean",
+          "default": true,
+          "description": "DuckPiper: Show routine signature details (parameters) in the Explorer label/tooltip when available."
+        },
+        "dp.system.overwriteByDefault": {
+          "type": "boolean",
+          "default": true,
+          "description": "DuckPiper: If true, overwrites existing system tables without prompting (unless specified otherwise)."
+        },
+        "dp.system.maxRows": {
+          "type": "number",
+          "default": 100000,
+          "description": "DuckPiper: Maximum number of rows to save to system table from a query."
+        },
+        "dp.duckdb.path": {
+          "type": "string",
+          "default": "dp/system/piper.duckdb",
+          "description": "DuckPiper: Path to the local DuckDB transformation engine file (relative to workspace root)."
+        },
+        "dp.transform.previewRows": {
+          "type": "number",
+          "default": 200,
+          "description": "DuckPiper: Number of rows to preview after running a transformation cell."
+        },
+        "dp.sqlCodelens.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "DuckPiper: Show DuckPiper actions and connection selector at the top of SQL files."
+        },
+        "dp.format.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "DuckPiper: Enable SQL formatting features."
+        },
+        "dp.format.indentSize": {
+          "type": "number",
+          "default": 2,
+          "description": "DuckPiper: Number of spaces to use for indentation."
+        },
+        "dp.format.keywordCase": {
+          "type": "string",
+          "enum": [
+            "upper",
+            "lower",
+            "preserve"
+          ],
+          "default": "upper",
+          "description": "DuckPiper: Case for SQL keywords."
+        },
+        "dp.format.dialectFallback": {
+          "type": "string",
+          "enum": [
+            "postgresql",
+            "mysql",
+            "sql"
+          ],
+          "default": "sql",
+          "description": "DuckPiper: Fallback dialect to use if no active connection is selected."
+        }
+      }
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "dp",
+          "title": "Duck Piper",
+          "icon": "media/duckpiper_logo.svg"
+        }
+      ],
+      "panel": [
+        {
+          "id": "dp-results",
+          "title": "DP: Data Results",
+          "icon": "media/duckpiper_logo.svg"
+        },
+        {
+          "id": "dp-erd",
+          "title": "DP: ERD",
+          "icon": "media/duckpiper_logo.svg"
+        },
+        {
+          "id": "dp-lineage",
+          "title": "DP: Lineage",
+          "icon": "media/duckpiper_logo.svg"
+        },
+        {
+          "id": "dp-memory-recall",
+          "title": "DP: Query History",
+          "icon": "media/duckpiper_logo.svg"
+        },
+        {
+          "id": "dp-pipelines",
+          "title": "DP: Pipeline History",
+          "icon": "media/duckpiper_logo.svg"
+        }
+      ]
+    },
+    "views": {
+      "explorer": [
+        {
+          "id": "dp.explorerViewBuiltin",
+          "name": "Duck Piper Explorer",
+          "icon": "$(plug)",
+          "visibility": "visible"
+        },
+        {
+          "id": "dp.localDuckDBViewBuiltin",
+          "name": "Duck Piper Data Work (Local)",
+          "icon": "$(server-process)",
+          "visibility": "visible"
+        }
+      ],
+      "dp": [
+        {
+          "id": "dp.explorerView",
+          "name": "Explorer",
+          "icon": "$(plug)",
+          "visibility": "visible"
+        },
+        {
+          "id": "dp.localDuckDBView",
+          "name": "Data Work (Local)",
+          "icon": "$(server-process)",
+          "visibility": "visible"
+        },
+        {
+          "id": "dp.pipelinesSidebarView",
+          "name": "Pipelines (Notebooks)",
+          "icon": "$(git-branch)"
+        },
+        {
+          "id": "dp.querySearchView",
+          "name": "Query Search",
+          "type": "webview",
+          "icon": "$(search)"
+        },
+        {
+          "id": "dp.savedQueriesView",
+          "name": "Saved Queries",
+          "icon": "$(file-code)"
+        }
+      ],
+      "dp-results": [
+        {
+          "id": "dp.resultsView",
+          "name": "DP: Results",
+          "type": "webview",
+          "icon": "$(table)"
+        }
+      ],
+      "dp-erd": [
+        {
+          "id": "dp.erdView",
+          "name": "DP: ERD",
+          "type": "webview",
+          "icon": "$(type-hierarchy)"
+        }
+      ],
+      "dp-lineage": [
+        {
+          "id": "dp.lineageView",
+          "name": "DP: Lineage",
+          "type": "webview",
+          "icon": "$(git-branch)"
+        }
+      ],
+      "dp-memory-recall": [
+        {
+          "id": "dp.memoryRecallView",
+          "name": "DP: History",
+          "icon": "$(history)"
+        }
+      ],
+      "dp-pipelines": [
+        {
+          "id": "dp.pipelinesView",
+          "name": "DP: Pipeline History",
+          "icon": "$(git-branch)"
+        }
+      ]
+    },
+    "menus": {
+      "editor/title": [
+        {
+          "command": "dp.query.findSimilarSavedQueries",
+          "when": "resourceLangId == sql && dp.hasSimilarQueries",
+          "group": "navigation"
+        },
+        {
+          "command": "dp.query.run",
+          "when": "resourceLangId == sql",
+          "group": "navigation"
+        },
+        {
+          "command": "dp.query.openMarkdownDoc",
+          "when": "resourceLangId == sql",
+          "group": "navigation"
+        },
+        {
+          "command": "dp.notebook.openMarkdownDoc",
+          "when": "notebookType == dp-notebook",
+          "group": "navigation"
+        },
+        {
+          "command": "dp.query.createSqlFile",
+          "group": "navigation"
+        },
+        {
+          "command": "dp.transform.notebook.create",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "dp.query.renameBundle",
+          "when": "view == dp.savedQueriesView && viewItem == queryItem",
+          "group": "inline@1"
+        },
+        {
+          "command": "dp.query.deleteSaved",
+          "when": "view == dp.savedQueriesView && viewItem == queryItem",
+          "group": "inline@2"
+        },
+        {
+          "command": "dp.connection.introspect",
+          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && viewItem == dp.schema.connection",
+          "group": "inline"
+        },
+        {
+          "command": "dp.schema.createTable",
+          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && viewItem == dp.schema.schema",
+          "group": "inline@0"
+        },
+        {
+          "command": "dp.schema.createTable",
+          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && viewItem == dp.schema.folder.tables",
+          "group": "inline@0"
+        },
+        {
+          "command": "dp.connection.introspect",
+          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && viewItem == dp.schema.schema",
+          "group": "inline@1"
+        },
+        {
+          "command": "dp.schema.generateDescriptionsWithAI",
+          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && viewItem == dp.schema.schema",
+          "group": "inline@3"
+        },
+        {
+          "command": "dp.erd.openSchema",
+          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && viewItem == dp.schema.schema",
+          "group": "inline@2"
+        },
+        {
+          "command": "dp.schema.backupSchema",
+          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && viewItem == dp.schema.schema",
+          "group": "inline@4"
+        },
+        {
+          "command": "dp.pipeline.openLineage",
+          "when": "view == dp.pipelinesView && viewItem == pipeline",
+          "group": "inline"
+        },
+        {
+          "command": "dp.connection.select",
+          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && (viewItem == dp.connection.item || viewItem == dp.connection.item.locked)",
+          "group": "inline@1"
+        },
+        {
+          "command": "dp.connection.test",
+          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && (viewItem == dp.connection.item || viewItem == dp.connection.item.locked)",
+          "group": "inline@3"
+        },
+        {
+          "command": "dp.connection.edit",
+          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && viewItem == dp.connection.item",
+          "group": "inline@4"
+        },
+        {
+          "command": "dp.connection.remove",
+          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && viewItem == dp.connection.item",
+          "group": "inline@5"
+        },
+        {
+          "command": "dp.duckdb.importFile",
+          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && (viewItem == dp.connection.item || viewItem == dp.connection.item.locked)",
+          "group": "3_duckdb"
+        },
+        {
+          "command": "dp.duckdb.deleteTable",
+          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && viewItem == dp.schema.table.local",
+          "group": "inline@99"
+        },
+        {
+          "command": "dp.query.openTablePreview",
+          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && (viewItem == dp.schema.table || viewItem == dp.schema.table.local || viewItem == dp.schema.table.reserved)",
+          "group": "inline@0"
+        },
+        {
+          "command": "dp.schema.editTable",
+          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && (viewItem == dp.schema.table || viewItem == dp.schema.table.local || viewItem == dp.schema.table.reserved)",
+          "group": "inline@1"
+        },
+        {
+          "command": "dp.system.saveTableDataToDuckDB",
+          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && viewItem == dp.schema.table",
+          "group": "inline@3"
+        },
+        {
+          "command": "dp.connection.exportToCsv",
+          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && viewItem == dp.schema.table",
+          "group": "inline@2"
+        },
+        {
+          "command": "dp.editor.insertRoutineCall",
+          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && (viewItem == dp.schema.procedure || viewItem == dp.schema.function)",
+          "group": "inline@0"
+        },
+        {
+          "command": "dp.schema.createTable",
+          "when": "(view == dp.localDuckDBView || view == dp.localDuckDBViewBuiltin) && (viewItem == dp.duckdb.schema || viewItem == dp.duckdb.schema.imports)",
+          "group": "inline@0"
+        },
+        {
+          "command": "dp.duckdb.importFile",
+          "when": "(view == dp.localDuckDBView || view == dp.localDuckDBViewBuiltin) && viewItem == dp.duckdb.schema.imports",
+          "group": "inline"
+        },
+        {
+          "command": "dp.duckdb.deleteTable",
+          "when": "(view == dp.localDuckDBView || view == dp.localDuckDBViewBuiltin) && (viewItem == dp.duckdb.table.import || viewItem == dp.duckdb.table.layer)",
+          "group": "inline@99"
+        },
+        {
+          "command": "dp.query.openTablePreview",
+          "when": "(view == dp.localDuckDBView || view == dp.localDuckDBViewBuiltin) && (viewItem == dp.duckdb.table || viewItem == dp.duckdb.table.import || viewItem == dp.duckdb.table.layer)",
+          "group": "inline@0"
+        },
+        {
+          "command": "dp.schema.editTable",
+          "when": "(view == dp.localDuckDBView || view == dp.localDuckDBViewBuiltin) && (viewItem == dp.duckdb.table.import || viewItem == dp.duckdb.table)",
+          "group": "inline@1"
+        },
+        {
+          "command": "dp.connection.exportToCsv",
+          "when": "(view == dp.localDuckDBView || view == dp.localDuckDBViewBuiltin) && (viewItem == dp.duckdb.table.import || viewItem == dp.duckdb.table.layer)",
+          "group": "inline@2"
+        },
+        {
+          "command": "dp.duckdb.resetLayer",
+          "when": "(view == dp.localDuckDBView || view == dp.localDuckDBViewBuiltin) && viewItem == dp.duckdb.schema.layer",
+          "group": "inline@9"
+        },
+        {
+          "command": "dp.erd.openSchema",
+          "when": "(view == dp.localDuckDBView || view == dp.localDuckDBViewBuiltin) && (viewItem == dp.duckdb.schema || viewItem == dp.duckdb.schema.imports || viewItem == dp.duckdb.schema.layer)",
+          "group": "inline@0"
+        },
+        {
+          "command": "dp.schema.backupSchema",
+          "when": "(view == dp.localDuckDBView || view == dp.localDuckDBViewBuiltin) && (viewItem == dp.duckdb.schema || viewItem == dp.duckdb.schema.imports || viewItem == dp.duckdb.schema.layer)",
+          "group": "inline@1"
+        },
+        {
+          "command": "dp.duckdb.createIndex",
+          "when": "(view == dp.localDuckDBView || view == dp.localDuckDBViewBuiltin) && viewItem == dp.duckdb.column",
+          "group": "index@1"
+        },
+        {
+          "command": "dp.duckdb.dropIndex",
+          "when": "(view == dp.localDuckDBView || view == dp.localDuckDBViewBuiltin) && viewItem == dp.duckdb.column",
+          "group": "index@2"
+        },
+        {
+          "command": "dp.pipeline.openLineage",
+          "when": "view == dp.pipelinesSidebarView && viewItem == notebookItem",
+          "group": "inline@1"
+        },
+        {
+          "command": "dp.notebook.delete",
+          "when": "view == dp.pipelinesSidebarView && viewItem == notebookItem",
+          "group": "inline@2"
+        },
+        {
+          "command": "dp.schema.selectForCompare",
+          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && viewItem =~ /dp\\.schema\\.(schema|table|view|table\\.local|table\\.reserved)/",
+          "group": "compare@1"
+        },
+        {
+          "command": "dp.schema.compareWithSelected",
+          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && viewItem =~ /dp\\.schema\\.(schema|table|view|table\\.local|table\\.reserved)/ && dp.compareSourceSet",
+          "group": "compare@2"
+        },
+
+        {
+          "command": "dp.connection.select",
+          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && (viewItem == dp.connection.item || viewItem == dp.connection.item.locked)",
+          "group": "1_connect@1"
+        },
+        {
+          "command": "dp.connection.test",
+          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && (viewItem == dp.connection.item || viewItem == dp.connection.item.locked)",
+          "group": "1_connect@2"
+        },
+        {
+          "command": "dp.connection.edit",
+          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && viewItem == dp.connection.item",
+          "group": "2_manage@1"
+        },
+        {
+          "command": "dp.connection.remove",
+          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && viewItem == dp.connection.item",
+          "group": "2_manage@2"
+        },
+
+        {
+          "command": "dp.schema.createTable",
+          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && viewItem == dp.schema.folder.tables",
+          "group": "1_schema@1"
+        },
+
+        {
+          "command": "dp.connection.introspect",
+          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && viewItem == dp.schema.schema",
+          "group": "1_schema@1"
+        },
+        {
+          "command": "dp.schema.createTable",
+          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && viewItem == dp.schema.schema",
+          "group": "1_schema@2"
+        },
+        {
+          "command": "dp.erd.openSchema",
+          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && viewItem == dp.schema.schema",
+          "group": "2_view@1"
+        },
+        {
+          "command": "dp.schema.generateDescriptionsWithAI",
+          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && viewItem == dp.schema.schema",
+          "group": "2_view@2"
+        },
+        {
+          "command": "dp.schema.backupSchema",
+          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && viewItem == dp.schema.schema",
+          "group": "3_export@1"
+        },
+
+        {
+          "command": "dp.query.openTablePreview",
+          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && (viewItem == dp.schema.table || viewItem == dp.schema.table.local || viewItem == dp.schema.table.reserved)",
+          "group": "1_query@1"
+        },
+        {
+          "command": "dp.schema.editTable",
+          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && (viewItem == dp.schema.table || viewItem == dp.schema.table.local || viewItem == dp.schema.table.reserved)",
+          "group": "2_manage@1"
+        },
+        {
+          "command": "dp.connection.exportToCsv",
+          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && viewItem == dp.schema.table",
+          "group": "3_export@1"
+        },
+        {
+          "command": "dp.system.saveTableDataToDuckDB",
+          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && viewItem == dp.schema.table",
+          "group": "3_export@2"
+        },
+        {
+          "command": "dp.duckdb.deleteTable",
+          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && viewItem == dp.schema.table.local",
+          "group": "z_destructive@1"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "dp.connection.add",
+          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin)",
+          "group": "navigation@1"
+        },
+        {
+          "command": "dp.view.refreshSchemas",
+          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin)",
+          "group": "navigation@2"
+        },
+        {
+          "command": "dp.ai.selectModel",
+          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin)",
+          "group": "navigation@3"
+        },
+        {
+          "command": "dp.openSettings",
+          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin)",
+          "group": "navigation@4"
+        },
+        {
+          "command": "dp.schema.generateDescriptionsWithAI",
+          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && viewItem == dp.schema.schema",
+          "group": "inline@10"
+        },
+        {
+          "command": "dp.query.search.clear",
+          "when": "view == dp.querySearchView",
+          "group": "navigation@1"
+        },
+        {
+          "command": "dp.query.search.rebuildIndex",
+          "when": "view == dp.querySearchView",
+          "group": "navigation@2"
+        },
+        {
+          "command": "dp.view.refreshSavedQueries",
+          "when": "view == dp.savedQueriesView",
+          "group": "navigation@10"
+        },
+        {
+          "command": "dp.query.createSqlFile",
+          "when": "view == dp.savedQueriesView",
+          "group": "navigation@9"
+        },
+        {
+          "command": "dp.view.refreshLocalDuckDB",
+          "when": "(view == dp.localDuckDBView || view == dp.localDuckDBViewBuiltin)",
+          "group": "navigation@1"
+        },
+        {
+          "command": "dp.transform.notebook.create",
+          "when": "(view == dp.localDuckDBView || view == dp.localDuckDBViewBuiltin)",
+          "group": "navigation@0"
+        },
+        {
+          "command": "dp.duckdb.importFile",
+          "when": "(view == dp.localDuckDBView || view == dp.localDuckDBViewBuiltin)",
+          "group": "navigation@2"
+        },
+        {
+          "command": "dp.erd.openLocalDuckDB",
+          "when": "(view == dp.localDuckDBView || view == dp.localDuckDBViewBuiltin)",
+          "group": "navigation@3"
+        },
+        {
+          "command": "dp.schema.generateDescriptionsLocalDuckDB",
+          "when": "(view == dp.localDuckDBView || view == dp.localDuckDBViewBuiltin)",
+          "group": "navigation@4"
+        },
+        {
+          "command": "dp.erd.open",
+          "when": "view == dp.erdView && dp.hasActiveSchema",
+          "group": "navigation@1"
+        },
+        {
+          "command": "dp.transform.notebook.create",
+          "when": "view == dp.pipelinesView",
+          "group": "navigation"
+        },
+        {
+          "command": "dp.transform.notebook.create",
+          "when": "view == dp.pipelinesSidebarView",
+          "group": "navigation"
+        },
+        {
+          "command": "dp.pipelinesSidebar.refresh",
+          "when": "view == dp.pipelinesSidebarView",
+          "group": "navigation@1"
+        }
+      ],
+      "notebook/toolbar": [
+        {
+          "command": "dp.notebook.openLineage",
+          "when": "notebookType == dp-notebook",
+          "group": "navigation"
+        },
+        {
+          "command": "dp.notebook.generateMarkdownDoc",
+          "when": "notebookType == dp-notebook",
+          "group": "navigation"
+        },
+        {
+          "command": "dp.notebook.delete",
+          "when": "notebookType == dp-notebook",
+          "group": "navigation"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "node esbuild.js",
+    "watch": "node esbuild.js --watch",
+    "package": "node esbuild.js --production",
+    "lint": "eslint src --ext ts",
+    "update-icons": "node scripts/copy-icons.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:ci": "jest --ci --coverage --maxWorkers=2",
+    "vsce:package": "vsce package",
+    "vsce:package:linux-x64": "vsce package --target linux-x64",
+    "vsce:package:linux-arm64": "vsce package --target linux-arm64",
+    "vsce:package:darwin-x64": "vsce package --target darwin-x64",
+    "vsce:package:darwin-arm64": "vsce package --target darwin-arm64",
+    "vsce:package:win32-x64": "vsce package --target win32-x64"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.14",
+    "@types/node": "20.x",
+    "@types/pg": "^8.16.0",
+    "@types/react": "^19.2.9",
+    "@types/react-dom": "^19.2.3",
+    "@types/ssh2": "^1.15.5",
+    "@types/vscode": "^1.96.0",
+    "@typescript-eslint/eslint-plugin": "^8.17.0",
+    "@typescript-eslint/parser": "^8.17.0",
+    "@vscode/test-electron": "^2.5.2",
+    "@vscode/vsce": "^3.3.2",
+    "ag-grid-community": "^35.0.1",
+    "ag-grid-react": "^35.0.1",
+    "chart.js": "^4.5.1",
+    "esbuild": "^0.25.0",
+    "eslint": "^9.16.0",
+    "jest": "^29.7.0",
+    "lucide-react": "^0.563.0",
+    "lucide-static": "^0.563.0",
+    "mysql2": "^3.9.0",
+    "pg": "^8.17.2",
+    "react": "^19.2.3",
+    "react-chartjs-2": "^5.3.1",
+    "react-dom": "^19.2.3",
+    "reactflow": "^11.11.4",
+    "sql-formatter": "^15.7.0",
+    "ts-jest": "^29.4.6",
+    "typescript": "^5.7.2"
+  },
+  "dependencies": {
+    "duckdb": "^1.4.3",
+    "elkjs": "^0.11.0",
+    "ssh2": "^1.17.0"
+  },
+  "overrides": {
+    "node-gyp": "^12.0.0",
+    "fast-xml-parser": "^5.3.4",
+    "glob": "^11.1.0",
+    "rimraf": "^6.0.0"
+  }
+}
