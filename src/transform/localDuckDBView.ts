@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { LocalDuckDB } from './localDuckDB';
+import type { LocalDuckDB as LocalDuckDBType } from './localDuckDB';
 import { getConnection } from '../connections/connectionStore';
 import { ConnectionProfile } from '../core/types';
 import { isProjectInitialized } from '../core/isProjectInitialized';
@@ -55,6 +55,7 @@ export class LocalDuckDBViewProvider implements vscode.TreeDataProvider<DuckDBIt
         } else if (element instanceof SchemaItem) {
             // Children of Schema: Tables
             try {
+                const { LocalDuckDB } = require('./localDuckDB') as { LocalDuckDB: typeof LocalDuckDBType };
                 const tables = await LocalDuckDB.getInstance().listTables(element.schemaName);
                 if (tables.length === 0) {
                     return [new DuckDBItem("No tables", vscode.TreeItemCollapsibleState.None)];
@@ -67,6 +68,7 @@ export class LocalDuckDBViewProvider implements vscode.TreeDataProvider<DuckDBIt
         } else if (element instanceof TableItem) {
             // Children of Table: Columns
             try {
+                const { LocalDuckDB } = require('./localDuckDB') as { LocalDuckDB: typeof LocalDuckDBType };
                 const columns = await LocalDuckDB.getInstance().listColumns(element.schemaName, element.tableName);
                 if (columns.length === 0) {
                     return [new DuckDBItem("No columns", vscode.TreeItemCollapsibleState.None)];

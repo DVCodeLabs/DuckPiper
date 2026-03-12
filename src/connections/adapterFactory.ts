@@ -1,6 +1,5 @@
 
 import { DbAdapter } from './adapters/adapter';
-import { DuckDBAdapter } from './adapters/duckdb';
 import { PostgresAdapter } from './adapters/postgres';
 import { DbDialect } from '../core/types';
 import { Disposable } from 'vscode';
@@ -21,7 +20,12 @@ export function setSecureQLSaveProfile(cb: (profile: any) => Promise<void>): voi
 
 function registerBuiltinAdapters() {
     if (adapterFactories.size > 0) return;
-    adapterFactories.set('duckdb', () => new DuckDBAdapter());
+    // DuckDB is lazy-loaded to avoid crashing the extension if the native
+    // module fails to load at startup.
+    adapterFactories.set('duckdb', () => {
+        const { DuckDBAdapter } = require('./adapters/duckdb');
+        return new DuckDBAdapter();
+    });
     adapterFactories.set('postgres', () => new PostgresAdapter());
     adapterFactories.set('mysql', () => new MySQLAdapter());
     adapterFactories.set('secureql', () => new SecureQLAdapter(_saveProfileCallback));

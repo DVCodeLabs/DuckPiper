@@ -63,19 +63,32 @@ export async function listFiles(dir: vscode.Uri): Promise<string[]> {
 }
 
 /**
- * Ensure DuckPiper AGENTS.md exists.
- * Always place it in DP/AGENTS.md.
+ * Ensure AGENTS.md exists in the project root.
+ * If AGENTS.md already exists, create AGENTS_DP.md instead.
  */
 export async function ensureAgentsMd(): Promise<void> {
   const folders = vscode.workspace.workspaceFolders;
   if (!folders) return;
 
-  const dpDir = await ensureDPDirs();
-  const agentsUri = vscode.Uri.joinPath(dpDir, 'AGENTS.md');
+  const root = folders[0].uri;
+  const agentsUri = vscode.Uri.joinPath(root, 'AGENTS.md');
+  const fallbackUri = vscode.Uri.joinPath(root, 'AGENTS_DP.md');
 
-  if (await fileExists(agentsUri)) return;
+  // If both files exist, nothing to do
+  if (await fileExists(agentsUri)) {
+    if (await fileExists(fallbackUri)) return;
+    // AGENTS.md exists but not ours — use fallback name
+    const bytes = new TextEncoder().encode(agentsContent());
+    await vscode.workspace.fs.writeFile(fallbackUri, bytes);
+    return;
+  }
 
-  const content = `# Agent Guidance
+  const bytes = new TextEncoder().encode(agentsContent());
+  await vscode.workspace.fs.writeFile(agentsUri, bytes);
+}
+
+function agentsContent(): string {
+  return `# Agent Guidance
 
 This repo stores SQL, schemas, notebooks, ERDs, and lineage metadata in known locations. When a user asks for SQL or a pipeline, always look for existing artifacts first, then use schema and documentation to build something new only if needed.
 
@@ -93,8 +106,8 @@ This repo stores SQL, schemas, notebooks, ERDs, and lineage metadata in known lo
 1. Search for existing queries first.
    - Check \`DP/queries/\` (including subdirectories) and \`DP/system/queryIndex.json\`.
 2. If nothing relevant exists, read the schema and docs.
-   - Use \`DP/schemas/\` for table/column definitions and descriptions.
-   - Use \`DP/system/erd/\` and \`DP/system/pipelines/\` to understand joins, relationships, and lineage.
+   - Use \`DP/schemas/\` for table/column definitions, relationships (if available) and descriptions.
+   - Use \`DP/system/erd/\` (if populated) and \`DP/system/pipelines/\` to understand joins, relationships, and lineage.
 3. Only then should you create a new SQL query file (.sql)
    - Prefer to reuse or extend existing patterns when possible.
    - Do NOT create any other DP files when creating sql - only create .sql files
@@ -117,10 +130,10 @@ This repo stores SQL, schemas, notebooks, ERDs, and lineage metadata in known lo
    - Do not use CREATE, CREATE OR REPLACE, or any other write statements.
    - Each pipeline cell must contain only a SELECT (or WITH … SELECT) statement.
 5. Pipeline Destination Layer and Table.
-   - For pipelines, add a comment at the end of the SQL in each cell in the following format: 
+   - For pipelines, add a comment at the end of the SQL in each cell in the following format:
    " -- Destination Info: " with the destination layer and destination table name.
 6. Pipeline DuckDB
-   - Do NOT run any DuckDB command.  DuckDB is built-in.  
+   - Do NOT run any DuckDB command.  DuckDB is built-in.
 
 ## Required Workflow (Documentation Requests)
 
@@ -144,25 +157,19 @@ This repo stores SQL, schemas, notebooks, ERDs, and lineage metadata in known lo
 - If an existing query/pipeline partially answers the request, adapt it rather than starting from scratch.
 - Keep outputs consistent with the repository's established conventions and naming.
 `;
-
-  const bytes = new TextEncoder().encode(content);
-  await vscode.workspace.fs.writeFile(agentsUri, bytes);
 }
 
 /**
- * Ensure README.md exists in DP/ with project setup instructions.
+ * Ensure README_DP.md exists in the project root with project setup instructions.
  */
 export async function ensureReadmeMd(): Promise<void> {
   const folders = vscode.workspace.workspaceFolders;
   if (!folders) return;
 
-  const dpDir = await ensureDPDirs();
-  const readmeUri = vscode.Uri.joinPath(dpDir, 'README.md');
+  const root = folders[0].uri;
+  const readmeUri = vscode.Uri.joinPath(root, 'README_DP.md');
 
-  // If README.md exists, do nothing.
-  if (await fileExists(readmeUri)) {
-    return;
-  }
+  if (await fileExists(readmeUri)) return;
 
   const content = `# DuckPiper Project
 
@@ -172,12 +179,12 @@ This project uses DuckPiper for data pipelines and queries.
 
 1. **Git Configuration**:
    The \`DP/system/\` directory contains generated system files and indices that usually do not need to be committed to version control, unless you want to share lineage and index metadata.
-   
+
    Recommended \`.gitignore\` entry:
    \`\`\`gitignore
    DP/system/
    \`\`\`
-   
+
    *Note: \`DP/queries/\`, \`DP/schemas/\`, and \`DP/notebooks/\` SHOULD be committed as they contain your source artifacts.*
 
 ## Folder Structure

@@ -1143,7 +1143,6 @@
     "vsce:package": "vsce package",
     "vsce:package:linux-x64": "vsce package --target linux-x64",
     "vsce:package:linux-arm64": "vsce package --target linux-arm64",
-    "vsce:package:darwin-x64": "vsce package --target darwin-x64",
     "vsce:package:darwin-arm64": "vsce package --target darwin-arm64",
     "vsce:package:win32-x64": "vsce package --target win32-x64"
   },
@@ -1185,7 +1184,6 @@
   "overrides": {
     "node-gyp": "^12.0.0",
     "fast-xml-parser": "^5.3.4",
-    "glob": "^11.1.0",
     "rimraf": "^6.0.0"
   }
 }

@@ -17,7 +17,8 @@ type InitStructureEntry = {
 
 // Folder + default file structure that Initialize creates
 const INIT_STRUCTURE: InitStructureEntry[] = [
-    { folder: 'DP', files: ['README.md', 'AGENTS.md'] },
+    { folder: '(project root)', files: ['AGENTS.md (or AGENTS_DP.md)', 'README_DP.md'] },
+    { folder: 'DP', files: [] },
     { folder: 'DP/queries', files: [] },
     { folder: 'DP/schemas', files: [] },
     { folder: 'DP/notebooks', files: [] },
@@ -267,8 +268,8 @@ function App() {
                     </ul>
                     <div style={{ marginTop: '10px', marginBottom: '10px'}}>
                         <div style={styles.folderName}>📄Initialization files:</div>
-                        Duck Piper creates <code>DP/README.md</code> and <code>DP/AGENTS.md</code>.<br />
-                        For best results, copy <code>DP/AGENTS.md</code> to your project root, or copy its contents into your existing root <code>AGENTS.md</code>.
+                        Duck Piper creates <code>AGENTS.md</code> and <code>README_DP.md</code> in your project root.<br />
+                        If <code>AGENTS.md</code> already exists, it creates <code>AGENTS_DP.md</code> instead.
                     </div>
                 </div>
 
@@ -327,7 +328,7 @@ function App() {
                             style={{ ...styles.button, ...styles.secondaryButton }}
                             onClick={handleOpenReadme}
                         >
-                            📘 Open DP/README.md
+                            📘 Open README_DP.md
                         </button>
                     </div>
                 </div>

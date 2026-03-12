@@ -106,18 +106,16 @@ export class WelcomeView {
                                 return;
                             }
 
-                            const dpReadmePath = vscode.Uri.joinPath(folders[0].uri, 'DP', 'README.md');
-                            const rootReadmePath = vscode.Uri.joinPath(folders[0].uri, 'README.md');
-                            const readmePath = (await fileExists(dpReadmePath)) ? dpReadmePath : rootReadmePath;
-                            if (!(await fileExists(readmePath))) {
-                                vscode.window.showWarningMessage('DP/README.md not found. Initialize DuckPiper to create it.');
+                            const readmeDpPath = vscode.Uri.joinPath(folders[0].uri, 'README_DP.md');
+                            if (!(await fileExists(readmeDpPath))) {
+                                vscode.window.showWarningMessage('README_DP.md not found. Initialize DuckPiper to create it.');
                                 return;
                             }
 
-                            const doc = await vscode.workspace.openTextDocument(readmePath);
+                            const doc = await vscode.workspace.openTextDocument(readmeDpPath);
                             await vscode.window.showTextDocument(doc, { preview: true, viewColumn: vscode.ViewColumn.Beside });
                         } catch (_e: unknown) {
-                            vscode.window.showWarningMessage('Could not open DP/README.md.');
+                            vscode.window.showWarningMessage('Could not open README_DP.md.');
                         }
                         break;
                 }

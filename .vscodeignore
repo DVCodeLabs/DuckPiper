@@ -10,21 +10,40 @@ out/**
 esbuild.js
 .DS_Store
 
-# Allow duckdb + snowflake-sdk node_modules through, but exclude build-time bloat:
+# CI/build files
+.tool-versions
+jest.config.*
+tsconfig*.json
+coverage/**
+
+# Allow duckdb node_modules through, but exclude build-time bloat:
 node_modules/node-gyp/**
 node_modules/node-addon-api/**
+node_modules/@mapbox/**
 node_modules/duckdb/src/**
 node_modules/duckdb/test/**
 node_modules/duckdb/binding.gyp
+node_modules/duckdb/deps/**
 node_modules/snowflake-sdk/test/**
 node_modules/**/test/**
 node_modules/**/tests/**
 node_modules/**/docs/**
+node_modules/**/doc/**
 node_modules/**/example*/**
 node_modules/**/.github/**
 node_modules/**/*.md
+node_modules/**/*.txt
+node_modules/**/*.map
 node_modules/**/.travis.yml
 node_modules/**/.eslintrc*
 node_modules/**/.prettierrc*
 node_modules/**/tsconfig.json
 node_modules/**/.package-lock.json
+node_modules/**/CHANGELOG*
+node_modules/**/HISTORY*
+node_modules/**/LICENSE*
+node_modules/**/LICENCE*
+node_modules/**/.npmignore
+node_modules/**/.editorconfig
+node_modules/**/Makefile
+node_modules/**/*.d.ts.map

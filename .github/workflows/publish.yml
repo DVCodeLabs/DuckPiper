@@ -5,6 +5,9 @@ on:
     types: [created]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   package:
     name: Package (${{ matrix.target }})
@@ -19,8 +22,6 @@ jobs:
             target: linux-arm64
           - os: macos-latest
             target: darwin-arm64
-          - os: macos-13
-            target: darwin-x64
           - os: windows-latest
             target: win32-x64
 
@@ -37,11 +38,29 @@ jobs:
         if: runner.os == 'Windows'
         uses: microsoft/setup-msbuild@v2
       - run: npm ci
+        env:
+          npm_config_fetch_timeout: 600000
       - run: npx vsce package --target ${{ matrix.target }}
       - uses: actions/upload-artifact@v4
         with:
           name: vsix-${{ matrix.target }}
           path: '*.vsix'
+
+  upload-release-assets:
+    name: Upload Release Assets
+    needs: package
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release'
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: vsix-*
+          merge-multiple: true
+      - name: Upload VSIX files to release
+        run: gh release upload "${{ github.event.release.tag_name }}" *.vsix --clobber
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
 
   publish:
     name: Publish to Marketplace

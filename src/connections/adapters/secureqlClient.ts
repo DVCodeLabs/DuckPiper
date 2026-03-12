@@ -140,6 +140,147 @@ function makeRequest(
     });
 }
 
+/**
+ * Make a POST request expecting an NDJSON streaming response.
+ *
+ * Reconstructs the original `{ results, log }` shape from streaming events so
+ * that callers (mapQueryResponse) can consume it identically to a buffered JSON
+ * response. Falls back to JSON parsing for error responses from middleware
+ * (e.g. 401/403/404 returned before the streaming handler runs).
+ */
+function makeNdjsonRequest(
+    url: string,
+    headers: Record<string, string>,
+    body: string,
+): Promise<{ statusCode: number; parsed: any }> {
+    return new Promise((resolve, reject) => {
+        const parsedUrl = new URL(url);
+        const transport = parsedUrl.protocol === 'https:' ? https : http;
+        const options = {
+            hostname: parsedUrl.hostname,
+            port: parsedUrl.port || (parsedUrl.protocol === 'https:' ? 443 : 80),
+            path: parsedUrl.pathname + parsedUrl.search,
+            method: 'POST',
+            headers,
+        };
+
+        const req = transport.request(options, (res) => {
+            const statusCode = res.statusCode ?? 500;
+            const contentType = res.headers['content-type'] ?? '';
+            const isNdjson = contentType.includes('application/x-ndjson');
+
+            const chunks: Buffer[] = [];
+            res.on('data', (chunk: Buffer) => chunks.push(chunk));
+            res.on('end', () => {
+                const raw = Buffer.concat(chunks).toString('utf8');
+
+                // Error responses from middleware (401/403/404) are JSON, not NDJSON.
+                if (!isNdjson) {
+                    resolve({ statusCode, parsed: parseResponseBody(raw) });
+                    return;
+                }
+
+                try {
+                    resolve({ statusCode, parsed: reassembleNdjson(raw) });
+                } catch (err) {
+                    reject(new SecureQLApiError(
+                        0,
+                        `Failed to parse streaming response: ${err instanceof Error ? err.message : String(err)}`,
+                    ));
+                }
+            });
+        });
+
+        req.on('error', (err) => reject(new SecureQLApiError(0, `Network error: ${err.message}`)));
+        req.write(body);
+        req.end();
+    });
+}
+
+/**
+ * Parse an NDJSON response body and reconstruct the `{ results, log }` shape
+ * that mapQueryResponse() expects.
+ *
+ * Event types:
+ *   result       → complete non-tabular QueryReturn (INSERT/UPDATE/DELETE)
+ *   result_start → begins a tabular result; carries fields + metadata
+ *   row          → single row of data within a tabular result
+ *   result_end   → ends a tabular result; carries affectedRows, runtime
+ *   error        → query error within a statement
+ *   log          → final log metadata (always last)
+ */
+function reassembleNdjson(raw: string): { results: any[]; log?: any } {
+    const lines = raw.split('\n').filter((l) => l.length > 0);
+    const results: any[] = [];
+    let log: any;
+    let currentResult: any = null;
+
+    for (const line of lines) {
+        const event = JSON.parse(line);
+
+        switch (event.type) {
+            case 'result':
+                results.push({
+                    affectedRows: event.affectedRows ?? 0,
+                    dbms: event.dbms,
+                    queriesRun: event.queriesRun ?? 1,
+                    query: event.query,
+                    runtime: event.runtime,
+                    timestamp: event.timestamp,
+                    message: event.message,
+                });
+                break;
+
+            case 'result_start':
+                currentResult = {
+                    fields: event.fields,
+                    query: event.query,
+                    dbms: event.dbms,
+                    timestamp: event.timestamp,
+                    rows: [],
+                    affectedRows: 0,
+                    queriesRun: 1,
+                };
+                break;
+
+            case 'row':
+                if (currentResult) {
+                    currentResult.rows.push(event.data);
+                }
+                break;
+
+            case 'result_end':
+                if (currentResult) {
+                    currentResult.affectedRows = event.affectedRows ?? 0;
+                    currentResult.queriesRun = event.queriesRun ?? 1;
+                    currentResult.runtime = event.runtime;
+                    results.push(currentResult);
+                    currentResult = null;
+                }
+                break;
+
+            case 'error':
+                results.push({
+                    error: event.error,
+                    query: event.query,
+                    dbms: event.dbms,
+                    timestamp: event.timestamp,
+                    affectedRows: 0,
+                    queriesRun: 0,
+                });
+                break;
+
+            case 'log': {
+                const { type: _, ...logData } = event;
+                log = logData;
+                break;
+            }
+        }
+    }
+
+    return { results, log };
+}
+
 function buildHeaders(apiKey: string): Record<string, string> {
     return {
         'Authorization': `Bearer ${apiKey}`,
@@ -199,18 +340,28 @@ export async function getSchema(opts: SecureQLRequestOptions): Promise<any> {
     return body;
 }
 
+/**
+ * Execute a SQL query via the SecureQL API.
+ *
+ * The server streams results as NDJSON (row-by-row). The response is reassembled
+ * into the standard `{ results, log }` shape before returning, so callers don't
+ * need to know about the streaming protocol.
+ */
 export async function executeQuery(opts: SecureQLRequestOptions, sql: string): Promise<any> {
     const base = normalizeBaseUrl(opts.baseUrl);
     enforceHttps(base);
 
     const url = `${base}/v1/key/connections/${opts.connectionId}/query`;
     const payload = JSON.stringify({ sql });
-    const resp = await makeRequest(url, 'POST', buildHeaders(opts.apiKey), payload);
-    const body = parseResponseBody(resp.body);
+
+    const headers = buildHeaders(opts.apiKey);
+    headers['Accept'] = 'application/x-ndjson';
+
+    const resp = await makeNdjsonRequest(url, headers, payload);
 
     if (resp.statusCode !== 200) {
-        throw mapSecureQLError(resp.statusCode, body, opts.apiKey);
+        throw mapSecureQLError(resp.statusCode, resp.parsed, opts.apiKey);
     }
 
-    return body;
+    return resp.parsed;
 }
