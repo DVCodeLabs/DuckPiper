@@ -11,6 +11,7 @@ esbuild.js
 .DS_Store
 
 # CI/build files
+.github/**
 .tool-versions
 jest.config.*
 tsconfig*.json
