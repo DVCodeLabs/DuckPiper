@@ -1,6 +1,6 @@
 # Duck Piper
 
-[![Tests](https://github.com/duckpiper/duckpiper/actions/workflows/test.yml/badge.svg)](https://github.com/duckpiper/duckpiper/tree/main/src)
+[![Tests](https://github.com/DVCodeLabs/DuckPiper/actions/workflows/test.yml/badge.svg)](https://github.com/DVCodeLabs/DuckPiper/actions/workflows/test.yml)
 [![Version](https://img.shields.io/visual-studio-marketplace/v/duckpiper.duckpiper?label=version)](https://marketplace.visualstudio.com/items?itemName=duckpiper.duckpiper)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE)
 [![VS Code](https://img.shields.io/badge/vscode-%5E1.96.0-007ACC)](https://code.visualstudio.com/)
