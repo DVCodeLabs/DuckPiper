@@ -103,7 +103,7 @@
       },
       {
         "command": "dp.connection.add",
-        "title": "DP: Add Connection",
+        "title": "DP: Add DB Connection",
         "icon": {
           "dark": "media/icons/lucide/dark/clipboard-plus.svg",
           "light": "media/icons/lucide/light/clipboard-plus.svg"

@@ -77,6 +77,10 @@ export const BUILTIN_PROVIDERS: DPProviderDescriptor[] = [
                     payloadKeys: ['secureqlBaseUrl', 'apiKey'],
                 },
             ],
+            reuse: {
+                excludeSecretKeys: ['apiKey'],
+                autoApplyWhenSingle: true,
+            },
         },
         supports: {
             ssl: false,
@@ -113,7 +117,8 @@ export const BUILTIN_PROVIDERS: DPProviderDescriptor[] = [
                         }
                     }
                 }
-            ]
+            ],
+            reuse: { disabled: true }
         },
         supports: { ssl: false, oauth: false, keypair: false, introspection: true, cancellation: true }
     },

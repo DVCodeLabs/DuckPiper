@@ -1,10 +1,11 @@
 import * as vscode from 'vscode';
 import * as crypto from 'crypto';
 import { ProviderRegistry } from '../connections/providerRegistry';
-import { saveConnectionProfile, saveConnectionSecrets } from '../connections/connectionStore';
+import { loadConnectionProfiles, saveConnectionProfile, saveConnectionSecrets, getConnectionSecrets, validateConnectionName } from '../connections/connectionStore';
 import { getAdapter } from '../connections/adapterFactory';
 import { performIntrospection } from '../connections/connectionCommands';
 import { formatDatabaseConnectionError } from '../connections/connectionErrors';
+import { buildReuseDraft, getCompatibleSources, isReuseEnabled } from '../connections/connectionReuse';
 import { Logger } from '../core/logger';
 import { ConnectionProfile, ConnectionSecrets, DPConnectionFieldPicker } from '../core/types';
 
@@ -22,6 +23,12 @@ interface RunProviderActionMessage {
     dialect: string;
     actionId: string;
     payload?: Record<string, unknown>;
+}
+
+interface RequestReuseDraftMessage {
+    command: 'requestReuseDraft';
+    sourceId: string;
+    dialect: string;
 }
 
 /** Incoming messages from the connection form webview */
@@ -51,7 +58,7 @@ export class ConnectionFormView {
             ConnectionFormView.currentPanel.dispose();
         }
 
-        const title = profile ? `Edit: ${profile.name}` : "Add Connection";
+        const title = profile ? `Edit: ${profile.name}` : "Add DB Connection";
         const panel = vscode.window.createWebviewPanel("connectionForm", title, vscode.ViewColumn.One, {
             enableScripts: true,
             retainContextWhenHidden: true,
@@ -83,6 +90,18 @@ export class ConnectionFormView {
                                 profile: initProfile,
                                 secrets: initSecrets
                             });
+                        } else {
+                            // Add mode: send existing profiles for reuse selector
+                            const allProfiles = await loadConnectionProfiles();
+                            const reuseSources: Record<string, unknown[]> = {};
+                            for (const provider of providers) {
+                                if (!isReuseEnabled(provider)) continue;
+                                const sources = getCompatibleSources(allProfiles, provider);
+                                if (sources.length > 0) {
+                                    reuseSources[provider.dialect] = sources;
+                                }
+                            }
+                            webview.postMessage({ command: 'setReuseSources', reuseSources });
                         }
                         break;
                     }
@@ -97,11 +116,28 @@ export class ConnectionFormView {
                             webview.postMessage({ command: 'testResult', success: false, message: formatDatabaseConnectionError(e) });
                         }
                         break;
+                    case 'requestReuseDraft':
+                        await this._handleReuseDraft(message as RequestReuseDraftMessage, webview);
+                        break;
                     case 'save':
                         try {
                             if (!message.profile) break;
                             const profile = message.profile;
                             const secrets = message.secrets ?? {};
+
+                            // Validate connection name uniqueness
+                            const nameError = await validateConnectionName(
+                                profile.name ?? '',
+                                profile.id || undefined
+                            );
+                            if (nameError) {
+                                webview.postMessage({
+                                    command: 'saveResult',
+                                    success: false,
+                                    message: nameError
+                                });
+                                break;
+                            }
 
                             try {
                                 const adapter = getAdapter(profile.dialect);
@@ -158,6 +194,80 @@ export class ConnectionFormView {
             undefined,
             this._disposables
         );
+    }
+
+    private async _handleReuseDraft(message: RequestReuseDraftMessage, webview: vscode.Webview): Promise<void> {
+        if (!message.sourceId || !message.dialect) return;
+
+        try {
+            const allProfiles = await loadConnectionProfiles();
+            const source = allProfiles.find((p) => p.id === message.sourceId);
+            if (!source) {
+                webview.postMessage({
+                    command: 'reuseDraftResult',
+                    sourceId: message.sourceId,
+                    profilePatch: {},
+                    secretsPatch: {},
+                    secretsAvailable: false,
+                    status: { type: 'error', text: 'Source connection not found.' }
+                });
+                return;
+            }
+
+            const provider = ProviderRegistry.getInstance().getProvider(message.dialect);
+            if (!provider) {
+                webview.postMessage({
+                    command: 'reuseDraftResult',
+                    sourceId: message.sourceId,
+                    profilePatch: {},
+                    secretsPatch: {},
+                    secretsAvailable: false,
+                    status: { type: 'error', text: 'Provider not found.' }
+                });
+                return;
+            }
+
+            // Don't copy secrets from session-mode sources
+            const isSessionOnly = source.credentialStorageMode === 'session';
+            let sourceSecrets = {};
+            let secretsAvailable = false;
+
+            if (!isSessionOnly) {
+                try {
+                    sourceSecrets = await getConnectionSecrets(source.id);
+                    secretsAvailable = true;
+                } catch {
+                    // Secrets not available — proceed with profile-only copy
+                }
+            }
+
+            const { profilePatch, secretsPatch } = buildReuseDraft(
+                source, sourceSecrets, provider, secretsAvailable
+            );
+
+            const status = secretsAvailable
+                ? { type: 'success' as const, text: 'Settings copied from existing connection.' }
+                : { type: 'info' as const, text: 'Server settings copied. Enter credentials to continue.' };
+
+            webview.postMessage({
+                command: 'reuseDraftResult',
+                sourceId: message.sourceId,
+                profilePatch,
+                secretsPatch,
+                secretsAvailable,
+                status
+            });
+        } catch (e: unknown) {
+            Logger.warn('Failed to build reuse draft:', e);
+            webview.postMessage({
+                command: 'reuseDraftResult',
+                sourceId: message.sourceId,
+                profilePatch: {},
+                secretsPatch: {},
+                secretsAvailable: false,
+                status: { type: 'error', text: 'Failed to load source connection.' }
+            });
+        }
     }
 
     private async _runProviderAction(message: RunProviderActionMessage, webview: vscode.Webview): Promise<void> {
@@ -238,7 +348,7 @@ export class ConnectionFormView {
             <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'unsafe-inline'; script-src ${webview.cspSource} 'unsafe-inline';">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <link rel="stylesheet" href="${styleUri}">
-            <title>Add Connection</title>
+            <title>Add DB Connection</title>
          </head>
          <body>
             <div id="root"></div>

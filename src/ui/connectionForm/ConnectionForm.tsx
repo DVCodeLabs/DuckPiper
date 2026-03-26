@@ -13,6 +13,26 @@ interface ConnectionFormProps {
     vscode: any;
 }
 
+interface ReuseSourceSummary {
+    id: string;
+    name: string;
+    dialect: string;
+    database?: string;
+    host?: string;
+    account?: string;
+    secureqlBaseUrl?: string;
+}
+
+function formatSourceLabel(source: ReuseSourceSummary): string {
+    const parts: string[] = [source.dialect];
+    if (source.database) parts.push(source.database);
+    if (source.host) parts.push(source.host);
+    if (source.account) parts.push(source.account);
+    if (source.secureqlBaseUrl) parts.push(source.secureqlBaseUrl);
+    const detail = parts.join(' \u2022 ');
+    return `${source.name} (${detail})`;
+}
+
 type Tab = 'connection' | 'auth' | 'ssh';
 type ProfileState = Partial<ConnectionProfile> & Record<string, unknown>;
 type SecretsState = ConnectionSecrets & Record<string, unknown>;
@@ -43,6 +63,8 @@ export const ConnectionForm: React.FC<ConnectionFormProps> = ({ vscode }) => {
     const [secrets, setSecrets] = useState<SecretsState>({ ...DEFAULT_SECRETS });
     const [localValues, setLocalValues] = useState<LocalState>({ ...DEFAULT_LOCAL });
     const [statusMsg, setStatusMsg] = useState<DPProviderActionStatus | null>(null);
+    const [reuseSources, setReuseSources] = useState<Record<string, ReuseSourceSummary[]>>({});
+    const [selectedReuseSource, setSelectedReuseSource] = useState<string>('');
 
     const providersRef = useRef<DPProviderDescriptor[]>([]);
     const profileRef = useRef<ProfileState>(profile);
@@ -114,10 +136,27 @@ export const ConnectionForm: React.FC<ConnectionFormProps> = ({ vscode }) => {
             }
         }
 
+        // Clear reuse selection when provider changes
+        setSelectedReuseSource('');
+
         const withDefaults = applyProviderDefaults(nextDialect, nextProfile, nextSecrets, nextLocalValues);
         setProfile(withDefaults.profile);
         setSecrets(withDefaults.secrets);
         setLocalValues(withDefaults.localValues);
+
+        // Auto-apply when exactly one source and provider uses autoApplyWhenSingle
+        const nextProvider = findProvider(nextDialect);
+        if (nextProvider?.formSchema.reuse?.autoApplyWhenSingle) {
+            const sources = reuseSources[nextDialect] ?? [];
+            if (sources.length === 1) {
+                setSelectedReuseSource(sources[0].id);
+                vscode.postMessage({
+                    command: 'requestReuseDraft',
+                    sourceId: sources[0].id,
+                    dialect: nextDialect
+                });
+            }
+        }
     };
 
     const currentProvider = providers.find((p) => p.dialect === selectedProvider);
@@ -281,13 +320,6 @@ export const ConnectionForm: React.FC<ConnectionFormProps> = ({ vscode }) => {
                 {action.label}
             </button>
         );
-    };
-
-    const getFieldBoundActions = (tab: Tab, fieldKey: string): DPConnectionFormAction[] => {
-        return (currentProvider?.formSchema.actions ?? []).filter((action) => {
-            const actionTab = action.tab ?? 'connection';
-            return actionTab === tab && action.payloadKeys?.length === 1 && action.payloadKeys[0] === fieldKey;
-        });
     };
 
     const renderField = (field: DPConnectionFieldSchema) => {
@@ -504,6 +536,48 @@ export const ConnectionForm: React.FC<ConnectionFormProps> = ({ vscode }) => {
                     }
                     break;
                 }
+                case 'setReuseSources': {
+                    const sources = message.reuseSources ?? {};
+                    setReuseSources(sources);
+
+                    // Auto-apply when exactly one source and provider uses autoApplyWhenSingle
+                    const currentDialect = selectedProviderRef.current;
+                    if (currentDialect) {
+                        const prov = providersRef.current.find((p) => p.dialect === currentDialect);
+                        if (prov?.formSchema.reuse?.autoApplyWhenSingle) {
+                            const dialSources = sources[currentDialect] ?? [];
+                            if (dialSources.length === 1) {
+                                setSelectedReuseSource(dialSources[0].id);
+                                vscode.postMessage({
+                                    command: 'requestReuseDraft',
+                                    sourceId: dialSources[0].id,
+                                    dialect: currentDialect
+                                });
+                            }
+                        }
+                    }
+                    break;
+                }
+                case 'reuseDraftResult': {
+                    const draft = message as {
+                        sourceId: string;
+                        profilePatch?: Record<string, unknown>;
+                        secretsPatch?: Record<string, unknown>;
+                        secretsAvailable?: boolean;
+                        status?: DPProviderActionStatus;
+                    };
+
+                    if (draft.profilePatch && Object.keys(draft.profilePatch).length > 0) {
+                        setProfile((prev) => ({ ...prev, ...draft.profilePatch }));
+                    }
+                    if (draft.secretsPatch && Object.keys(draft.secretsPatch).length > 0) {
+                        setSecrets((prev) => ({ ...prev, ...draft.secretsPatch }));
+                    }
+                    if (draft.status) {
+                        setStatusMsg(draft.status);
+                    }
+                    break;
+                }
                 case 'providerActionResult': {
                     const result = message.result as {
                         profilePatch?: Record<string, unknown>;
@@ -545,10 +619,16 @@ export const ConnectionForm: React.FC<ConnectionFormProps> = ({ vscode }) => {
     );
     const hasSshFields = providerSshFields.length > 0;
 
+    // Reuse selector: show when provider supports reuse and compatible sources exist
+    const currentReuseEnabled = currentProvider ? currentProvider.formSchema.reuse?.disabled !== true : false;
+    const currentReuseSources = currentReuseEnabled ? (reuseSources[selectedProvider] ?? []) : [];
+    const showReuseSelector = currentReuseEnabled && currentReuseSources.length > 0;
+    const reuseLabel = currentProvider?.formSchema.reuse?.label ?? 'Reuse settings from existing connection';
+
     return (
         <div className="connection-form-root">
             <header className="cf-card">
-                <h2>Add Connection</h2>
+                <h2>Add DB Connection</h2>
 
                 <div className="cf-top-fields">
                     <div className="cf-field">
@@ -567,6 +647,33 @@ export const ConnectionForm: React.FC<ConnectionFormProps> = ({ vscode }) => {
                             ))}
                         </select>
                     </div>
+
+                    {showReuseSelector && (
+                        <div className="cf-field">
+                            <label><span>{reuseLabel}</span></label>
+                            <select
+                                value={selectedReuseSource}
+                                onChange={(e) => {
+                                    const sourceId = e.target.value;
+                                    setSelectedReuseSource(sourceId);
+                                    if (sourceId) {
+                                        vscode.postMessage({
+                                            command: 'requestReuseDraft',
+                                            sourceId,
+                                            dialect: selectedProvider
+                                        });
+                                    }
+                                }}
+                            >
+                                <option value="">Enter manually</option>
+                                {currentReuseSources.map((source) => (
+                                    <option key={source.id} value={source.id}>
+                                        {formatSourceLabel(source)}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
 
                     <div className="cf-field">
                         <label><span>Connection Tag</span></label>

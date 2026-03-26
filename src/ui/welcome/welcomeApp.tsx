@@ -316,7 +316,7 @@ function App() {
                             style={{ ...styles.button, ...styles.primaryButton }}
                             onClick={handleAddConnection}
                         >
-                            ➕ Add Connection
+                            ➕ Add DB Connection
                         </button>
                         <button
                             style={{ ...styles.button, ...styles.secondaryButton }}

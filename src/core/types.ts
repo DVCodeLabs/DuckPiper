@@ -98,9 +98,21 @@ export type DPProviderActionHandler = (
     payload: Record<string, unknown>
 ) => Promise<DPProviderActionResult | void> | DPProviderActionResult | void;
 
+export interface DPConnectionReuseSchema {
+    disabled?: boolean;
+    label?: string;
+    sourceDialects?: string[];
+    includeProfileKeys?: string[];
+    excludeProfileKeys?: string[];
+    includeSecretKeys?: string[];
+    excludeSecretKeys?: string[];
+    autoApplyWhenSingle?: boolean;
+}
+
 export interface DPConnectionFormSchema {
     fields: DPConnectionFieldSchema[];
     actions?: DPConnectionFormAction[];
+    reuse?: DPConnectionReuseSchema;
 }
 
 export interface ConnectionProfile {
