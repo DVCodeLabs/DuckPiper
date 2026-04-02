@@ -1310,11 +1310,13 @@ interface ScriptExecutionResultData {
 const ScriptResultsView = ({
     data,
     theme,
-    allowCsvExport
+    allowCsvExport,
+    onOpenChartBuilder
 }: {
     data: ScriptExecutionResultData;
     theme: any;
     allowCsvExport: boolean;
+    onOpenChartBuilder: () => void;
 }) => {
     const skippedCount = data.statements.filter(s => s.status === 'skipped').length;
     const successCount = data.statements.filter(s => s.status === 'success').length;
@@ -1382,7 +1384,7 @@ const ScriptResultsView = ({
                 <div className="script-grid-section">
                     <div className="script-grid-label">Last query result:</div>
                     <div className="script-grid-wrapper">
-                        <ResultsTab data={data.lastTabularResult!} theme={theme} onOpenChartBuilder={() => {}} allowCsvExport={allowCsvExport} />
+                        <ResultsTab data={data.lastTabularResult!} theme={theme} onOpenChartBuilder={onOpenChartBuilder} allowCsvExport={allowCsvExport} />
                     </div>
                 </div>
             )}
@@ -1396,6 +1398,7 @@ const App = () => {
     const [activeTab, setActiveTab] = useState<'results' | 'charts'>('results');
     const [gridData, setGridData] = useState<GridData | null>(null);
     const [scriptData, setScriptData] = useState<ScriptExecutionResultData | null>(null);
+    const activeChartData = scriptData?.lastTabularResult ?? gridData;
     const [allowCsvExport, setAllowCsvExport] = useState<boolean>(true);
     const [erdData, setErdData] = useState<{ nodes: Node[], edges: Edge[], graphSignature?: string, layout?: any, connectionName?: string }>({ nodes: [], edges: [] });
     const [lineageData, setLineageData] = useState<{ nodes: Node[], edges: Edge[] }>({ nodes: [], edges: [] });
@@ -1615,12 +1618,12 @@ const App = () => {
                 <button className={`tab ${activeTheme === myThemeLight ? 'light-tab' : ''} ${activeTab === 'charts' ? 'active' : ''}`} onClick={() => setActiveTab('charts')}>Charts</button>
             </div>
             <div className="content">
-                {activeTab === 'results' && scriptData && <ScriptResultsView data={scriptData} theme={activeTheme} allowCsvExport={allowCsvExport} />}
+                {activeTab === 'results' && scriptData && <ScriptResultsView data={scriptData} theme={activeTheme} allowCsvExport={allowCsvExport} onOpenChartBuilder={() => setActiveTab('charts')} />}
                 {activeTab === 'results' && !scriptData && <ResultsTab data={gridData} theme={activeTheme} onOpenChartBuilder={() => setActiveTab('charts')} allowCsvExport={allowCsvExport} />}
                 {activeTab === 'charts' && (
                     <ChartsTab
                         config={chartConfig}
-                        data={gridData}
+                        data={activeChartData}
                         onNotify={(title, message) => setAppNotice({ title, message })}
                     />
                 )}

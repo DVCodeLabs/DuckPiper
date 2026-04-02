@@ -320,10 +320,6 @@
         "icon": "$(type-hierarchy)"
       },
       {
-        "command": "dp.chart.createFromResults",
-        "title": "DP: Create Chart from Results (AI)"
-      },
-      {
         "command": "dp.view.refreshLocalDuckDB",
         "title": "DP: Refresh Transformation DB",
         "icon": {

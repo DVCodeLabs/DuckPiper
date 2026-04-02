@@ -47,10 +47,6 @@ export class ResultsPanel {
                         }
                         return;
 
-                    case 'generateChart':
-                        vscode.commands.executeCommand('dp.chart.createFromResults', this._docUri);
-                        return;
-
                     case 'viewReady':
                         if (this._allowCsvExport !== undefined) {
                             this._panel.webview.postMessage({ command: 'setAllowCsvExport', data: this._allowCsvExport });

@@ -1778,10 +1778,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<DuckPi
       const { openMarkdownDoc } = require('./ai/docGenerator');
       await openMarkdownDoc(context);
     }),
-    vscode.commands.registerCommand("dp.chart.createFromResults", async (uri?: vscode.Uri) => {
-      const { generateChart } = require('./ai/chartgen');
-      await generateChart(context, uri);
-    }),
     vscode.commands.registerCommand("dp.ai.selectModel", async () => {
       const { selectAIModel } = require('./ai/aiService');
       await selectAIModel();

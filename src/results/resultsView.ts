@@ -66,12 +66,6 @@ export class ResultsViewProvider implements vscode.WebviewViewProvider {
                     }
                     return;
 
-                case 'generateChart':
-                    if (this._activeDocUri) {
-                        vscode.commands.executeCommand('dp.chart.createFromResults', vscode.Uri.parse(this._activeDocUri));
-                    }
-                    return;
-
                 case 'viewReady':
                     this._updateViewForActiveDoc();
                     return;

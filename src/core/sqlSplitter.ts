@@ -71,6 +71,9 @@ export function splitStatements(sql: string): SplitStatement[] {
                 } else if (ch === '-' && i + 1 < len && sql[i + 1] === '-') {
                     mode = Mode.LineComment;
                     i += 2;
+                } else if (ch === '#') {
+                    mode = Mode.LineComment;
+                    i++;
                 } else if (ch === '/' && i + 1 < len && sql[i + 1] === '*') {
                     mode = Mode.BlockComment;
                     i += 2;
@@ -204,6 +207,26 @@ export function findStatementAtOffset(sql: string, offset: number): SplitStateme
     return best;
 }
 
+/**
+ * Returns true if the given SQL fragment contains executable SQL
+ * after stripping leading/trailing comments and whitespace.
+ */
+export function hasExecutableSQL(sql: string): boolean {
+    let s = sql.trimStart();
+    while (s.length > 0) {
+        if (s.startsWith('--') || s.startsWith('#')) {
+            const nl = s.indexOf('\n');
+            s = nl === -1 ? '' : s.slice(nl + 1).trimStart();
+        } else if (s.startsWith('/*')) {
+            const end = s.indexOf('*/', 2);
+            s = end === -1 ? '' : s.slice(end + 2).trimStart();
+        } else {
+            return true;
+        }
+    }
+    return false;
+}
+
 // ── helpers ──────────────────────────────────────────────────────────
 
 function pushStatement(
@@ -214,7 +237,7 @@ function pushStatement(
 ) {
     const raw = sql.slice(start, end);
     const trimmed = raw.trim();
-    if (trimmed.length > 0) {
+    if (trimmed.length > 0 && hasExecutableSQL(trimmed)) {
         // Compute trimmed offsets
         const leadingWs = raw.indexOf(trimmed[0]);
         const trimStart = start + leadingWs;
