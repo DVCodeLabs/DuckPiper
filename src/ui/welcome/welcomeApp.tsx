@@ -15,6 +15,8 @@ type InitStructureEntry = {
     files: string[];
 };
 
+type StructureIconKind = 'folder' | 'file';
+
 // Folder + default file structure that Initialize creates
 const INIT_STRUCTURE: InitStructureEntry[] = [
     { folder: '(project root)', files: ['AGENTS.md (or AGENTS_DP.md)', 'README_DP.md'] },
@@ -163,11 +165,110 @@ const styles: Record<string, React.CSSProperties> = {
         fontSize: '13px',
         display: 'block',
         padding: '4px 0'
+    },
+    statusPanel: {
+        backgroundColor: 'var(--vscode-textCodeBlock-background)',
+        borderRadius: '4px',
+        padding: '12px'
+    },
+    statusNote: {
+        marginTop: 0,
+        marginBottom: '12px',
+        fontSize: '13px',
+        color: 'var(--vscode-descriptionForeground)'
+    },
+    actionRow: {
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: '8px',
+        alignItems: 'center'
+    },
+    stepAction: {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'flex-start',
+        gap: '6px',
+        minWidth: '220px'
+    },
+    stepLabel: {
+        fontSize: '11px',
+        fontWeight: 700,
+        letterSpacing: '0.08em',
+        color: 'var(--vscode-descriptionForeground)'
+    },
+    stepStateComplete: {
+        fontSize: '12px',
+        fontWeight: 600,
+        color: 'var(--vscode-testing-iconPassed)'
+    },
+    stepStatePending: {
+        fontSize: '12px',
+        color: 'var(--vscode-descriptionForeground)'
+    },
+    stepCompleteIcon: {
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '18px',
+        height: '18px',
+        marginLeft: '4px',
+        borderRadius: '999px',
+        fontSize: '12px',
+        fontWeight: 700,
+        lineHeight: 1
+    },
+    stepCompleteIconActive: {
+        backgroundColor: 'var(--vscode-testing-iconPassed)',
+        color: 'var(--vscode-editor-background)'
+    },
+    stepCompleteIconPending: {
+        backgroundColor: 'var(--vscode-disabledForeground)',
+        color: 'var(--vscode-editor-background)',
+        opacity: 0.75
+    },
+    structureLabel: {
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '6px'
+    },
+    structureIcon: {
+        width: '14px',
+        height: '14px',
+        color: 'var(--vscode-descriptionForeground)',
+        flex: '0 0 auto'
     }
 };
 
+function StructureIcon({ kind }: { kind: StructureIconKind }) {
+    if (kind === 'folder') {
+        return (
+            <svg viewBox="0 0 16 16" fill="none" aria-hidden="true" style={styles.structureIcon}>
+                <path
+                    d="M1.75 4.5a1.25 1.25 0 0 1 1.25-1.25h3.1l1.2 1.5H13a1.25 1.25 0 0 1 1.25 1.25v5.5A1.25 1.25 0 0 1 13 12.75H3A1.25 1.25 0 0 1 1.75 11.5v-7Z"
+                    stroke="currentColor"
+                    strokeWidth="1.2"
+                    strokeLinejoin="round"
+                />
+            </svg>
+        );
+    }
+
+    return (
+        <svg viewBox="0 0 16 16" fill="none" aria-hidden="true" style={styles.structureIcon}>
+            <path
+                d="M4 1.75h5.5l2.5 2.5v9A1.25 1.25 0 0 1 10.75 14.5h-6.5A1.25 1.25 0 0 1 3 13.25v-10A1.5 1.5 0 0 1 4.5 1.75Z"
+                stroke="currentColor"
+                strokeWidth="1.2"
+                strokeLinejoin="round"
+            />
+            <path d="M9.5 1.75v2.5h2.5" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
+        </svg>
+    );
+}
+
 function App() {
     const [initialized, setInitialized] = useState<boolean | null>(null);
+    const [hasWorkspace, setHasWorkspace] = useState<boolean | null>(null);
 
     useEffect(() => {
         // Listen for messages from extension
@@ -175,6 +276,7 @@ function App() {
             const message = event.data;
             if (message.command === 'setStatus') {
                 setInitialized(message.initialized);
+                setHasWorkspace(message.hasWorkspace);
             }
         };
         window.addEventListener('message', handler);
@@ -186,7 +288,14 @@ function App() {
     }, []);
 
     const handleInitialize = () => {
+        if (!hasWorkspace) {
+            return;
+        }
         vscode.postMessage({ command: 'initialize' });
+    };
+
+    const handleOpenFolder = () => {
+        vscode.postMessage({ command: 'openFolder' });
     };
 
     const handleAddConnection = () => {
@@ -200,6 +309,11 @@ function App() {
     const handleOpenReadme = () => {
         vscode.postMessage({ command: 'openReadme' });
     };
+
+    const step1Complete = hasWorkspace === true;
+    const step2Complete = initialized === true;
+    const step1Active = hasWorkspace === false;
+    const step2Active = hasWorkspace === true && initialized === false;
 
     return (
         <div style={styles.container}>
@@ -230,14 +344,85 @@ function App() {
                     </span>
                 )}
                 </h2>
-                {!initialized && (
-                    <button
-                        style={{ ...styles.button, ...styles.primaryButton }}
-                        onClick={handleInitialize}
-                    >
-                        Initialize Duck Piper
-                    </button>
-                )}
+                <div style={styles.statusPanel}>
+                    {hasWorkspace === false && (
+                        <p style={styles.statusNote}>
+                            Open or create a project folder, then initialize Duck Piper.
+                        </p>
+                    )}
+                    {hasWorkspace === true && initialized === false && (
+                        <p style={styles.statusNote}>
+                            Step 1 is complete. Now Initialize Duck Piper.
+                        </p>
+                    )}
+                    {initialized === true && (
+                        <p style={styles.statusNote}>
+                            Duck Piper is initialized.
+                        </p>
+                    )}
+                    {initialized !== null && (
+                        <div style={styles.actionRow}>
+                            <div style={styles.stepAction}>
+                                <div style={styles.stepLabel}>STEP 1</div>
+                                <button
+                                    style={{
+                                        ...styles.button,
+                                        ...(step1Active ? styles.primaryButton : styles.secondaryButton),
+                                        ...(step1Active ? {} : { border: '1px solid var(--vscode-panel-border)' }),
+                                        marginRight: 0
+                                    }}
+                                    onClick={handleOpenFolder}
+                                >
+                                    Open Folder
+                                    <span
+                                        style={{
+                                            ...styles.stepCompleteIcon,
+                                            ...(step1Complete ? styles.stepCompleteIconActive : styles.stepCompleteIconPending)
+                                        }}
+                                        aria-label={step1Complete ? 'Completed' : 'Pending'}
+                                    >
+                                        ✓
+                                    </span>
+                                </button>
+                            </div>
+                            <div style={styles.stepAction}>
+                                <div style={styles.stepLabel}>STEP 2</div>
+                                <button
+                                    style={{
+                                        ...styles.button,
+                                        ...(step2Active ? styles.primaryButton : styles.secondaryButton),
+                                        ...(step2Active ? {} : { border: '1px solid var(--vscode-panel-border)' }),
+                                        marginRight: 0,
+                                        ...((step2Active || step2Complete) ? {} : {
+                                            opacity: 0.6,
+                                            cursor: 'not-allowed'
+                                        })
+                                    }}
+                                    onClick={handleInitialize}
+                                    disabled={!hasWorkspace || initialized === true}
+                                    title={
+                                        initialized === true
+                                            ? 'Duck Piper is already initialized.'
+                                            : hasWorkspace
+                                                ? 'Initialize Duck Piper'
+                                                : 'Open a folder to enable initialization.'
+                                    }
+                                >
+                                    Initialize Duck Piper
+                                    <span
+                                        style={{
+                                            ...styles.stepCompleteIcon,
+                                            ...(step2Complete ? styles.stepCompleteIconActive : styles.stepCompleteIconPending)
+                                        }}
+                                        aria-label={step2Complete ? 'Completed' : 'Pending'}
+                                    >
+                                        ✓
+                                    </span>
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* What Initialize Creates */}
@@ -253,11 +438,17 @@ function App() {
                 <ul style={styles.folderList}>
                         {INIT_STRUCTURE.map(({ folder, files }) => (
                             <li key={folder} style={styles.folderItem}>
-                                <div style={styles.folderName}>📁 {folder}</div>
+                                <div style={{ ...styles.folderName, ...styles.structureLabel }}>
+                                    <StructureIcon kind="folder" />
+                                    <span>{folder}</span>
+                                </div>
                                 {files.length > 0 ? (
                                     <ul style={styles.fileList}>
                                         {files.map((file) => (
-                                            <li key={`${folder}/${file}`} style={styles.fileItem}>📄 {file}</li>
+                                            <li key={`${folder}/${file}`} style={{ ...styles.fileItem, ...styles.structureLabel }}>
+                                                <StructureIcon kind="file" />
+                                                <span>{file}</span>
+                                            </li>
                                         ))}
                                     </ul>
                                 ) : (
@@ -267,7 +458,10 @@ function App() {
                         ))}
                     </ul>
                     <div style={{ marginTop: '10px', marginBottom: '10px'}}>
-                        <div style={styles.folderName}>📄Initialization files:</div>
+                        <div style={{ ...styles.folderName, ...styles.structureLabel }}>
+                            <StructureIcon kind="file" />
+                            <span>Initialization files:</span>
+                        </div>
                         Duck Piper creates <code>AGENTS.md</code> and <code>README_DP.md</code> in your project root.<br />
                         If <code>AGENTS.md</code> already exists, it creates <code>AGENTS_DP.md</code> instead.
                     </div>

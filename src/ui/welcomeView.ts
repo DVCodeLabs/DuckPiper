@@ -13,6 +13,9 @@ export class WelcomeView {
         this._extensionUri = extensionUri;
 
         this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
+        vscode.workspace.onDidChangeWorkspaceFolders(() => {
+            void this._sendStatus();
+        }, null, this._disposables);
         this._panel.webview.html = this._getWebviewContent(this._panel.webview, extensionUri);
         this._setWebviewMessageListener(this._panel.webview);
     }
@@ -41,7 +44,8 @@ export class WelcomeView {
 
     private async _sendStatus() {
         const initialized = await isProjectInitialized();
-        this._panel.webview.postMessage({ command: 'setStatus', initialized });
+        const hasWorkspace = (vscode.workspace.workspaceFolders?.length ?? 0) > 0;
+        this._panel.webview.postMessage({ command: 'setStatus', initialized, hasWorkspace });
     }
 
     public dispose() {
@@ -63,6 +67,11 @@ export class WelcomeView {
 
                     case 'initialize':
                         try {
+                            if ((vscode.workspace.workspaceFolders?.length ?? 0) === 0) {
+                                vscode.window.showWarningMessage('Open a folder before initializing DuckPiper.');
+                                return;
+                            }
+
                             // Full initialization - must match dp.project.initialize command flow
                             const { ensureDPDirs, ensureAgentsMd, ensureReadmeMd } = require('../core/fsWorkspace');
                             const { initializePromptFiles } = require('../ai/prompts');
@@ -96,6 +105,10 @@ export class WelcomeView {
 
                     case 'openSettings':
                         vscode.commands.executeCommand('dp.openSettings');
+                        break;
+
+                    case 'openFolder':
+                        vscode.commands.executeCommand('vscode.openFolder');
                         break;
 
                     case 'openReadme':

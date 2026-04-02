@@ -543,6 +543,11 @@ export async function activate(context: vscode.ExtensionContext): Promise<DuckPi
     }),
     vscode.commands.registerCommand("dp.project.initialize", async () => {
       try {
+        if ((vscode.workspace.workspaceFolders?.length ?? 0) === 0) {
+          vscode.window.showWarningMessage('Open a folder before initializing DuckPiper.');
+          return;
+        }
+
         const { ensureDPDirs, ensureAgentsMd } = require('./core/fsWorkspace');
 
         // Create folder structure
@@ -588,13 +593,16 @@ export async function activate(context: vscode.ExtensionContext): Promise<DuckPi
   );
 
   const maybeAutoOpenWelcome = async () => {
-    if (autoWelcomeShownThisSession) return;
-    if ((vscode.workspace.workspaceFolders?.length ?? 0) === 0) return;
-    if (await isProjectInitialized()) return;
+    try {
+      if (autoWelcomeShownThisSession) return;
+      if (await isProjectInitialized()) return;
 
-    autoWelcomeShownThisSession = true;
-    await vscode.commands.executeCommand("workbench.view.extension.dp");
-    await vscode.commands.executeCommand("dp.welcome.open");
+      await vscode.commands.executeCommand("workbench.view.extension.dp");
+      await vscode.commands.executeCommand("dp.welcome.open");
+      autoWelcomeShownThisSession = true;
+    } catch (err) {
+      Logger.error("Failed to auto-open welcome page", err);
+    }
   };
 
   // Auto-open sidebar + Welcome when project is not initialized.
@@ -605,6 +613,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<DuckPi
 
   context.subscriptions.push(
     vscode.workspace.onDidChangeWorkspaceFolders(() => {
+      void updateProjectInitializedContext();
       void maybeAutoOpenWelcome();
     })
   );

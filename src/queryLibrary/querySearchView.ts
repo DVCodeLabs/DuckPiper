@@ -155,16 +155,14 @@ export class QuerySearchViewProvider implements vscode.WebviewViewProvider {
     font-family: var(--vscode-font-family);
     font-size: var(--vscode-font-size);
     color: var(--vscode-foreground);
-    background: var(--vscode-sideBar-background);
     overflow-x: hidden;
   }
   .search-box {
     position: sticky; top: 0; z-index: 10;
     padding: 8px 8px 4px;
-    background: var(--vscode-sideBar-background);
   }
   .search-box input {
-    width: 100%;
+    width: 95%;
     padding: 5px 8px;
     border: 1px solid var(--vscode-input-border, transparent);
     background: var(--vscode-input-background);
