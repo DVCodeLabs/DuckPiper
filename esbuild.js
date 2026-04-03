@@ -52,6 +52,7 @@ async function main() {
             { in: 'src/ui/welcome/welcomeApp.tsx', out: 'welcomeApp' },
             { in: 'src/ui/createTable/createTableApp.tsx', out: 'createTableApp' },
             { in: 'src/ui/backupSchema/backupSchemaApp.tsx', out: 'backupSchemaApp' },
+            { in: 'src/markdown/markdownViewApp.tsx', out: 'markdownViewApp' },
 
         ],
         bundle: true,

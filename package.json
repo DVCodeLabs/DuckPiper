@@ -449,6 +449,18 @@
         "icon": "$(markdown)"
       },
       {
+        "command": "dp.markdown.focus",
+        "title": "DP: Focus Markdown Panel"
+      },
+      {
+        "command": "dp.markdown.save",
+        "title": "DP: Save Markdown"
+      },
+      {
+        "command": "dp.markdown.reload",
+        "title": "DP: Reload Markdown from Disk"
+      },
+      {
         "command": "dp.notebook.delete",
         "title": "DP: Delete Notebook",
         "icon": {
@@ -683,6 +695,11 @@
           "id": "dp-pipelines",
           "title": "DP: Pipeline History",
           "icon": "media/duckpiper_logo.svg"
+        },
+        {
+          "id": "dp-markdown",
+          "title": "DP: Markdown",
+          "icon": "media/duckpiper_logo.svg"
         }
       ]
     },
@@ -737,6 +754,14 @@
           "name": "DP: Results",
           "type": "webview",
           "icon": "$(table)"
+        }
+      ],
+      "dp-markdown": [
+        {
+          "id": "dp.markdownView",
+          "name": "DP: Markdown",
+          "type": "webview",
+          "icon": "$(markdown)"
         }
       ],
       "dp-erd": [

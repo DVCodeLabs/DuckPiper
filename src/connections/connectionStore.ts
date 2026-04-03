@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import { ConnectionProfile, ConnectionSecrets } from "../core/types";
 import { ensureDPDirs, fileExists, readJson, writeJson } from "../core/fsWorkspace";
+import { isProjectInitialized } from '../core/isProjectInitialized';
 import { Logger } from '../core/logger';
 
 let secretStorage: vscode.SecretStorage | undefined;
@@ -60,9 +61,10 @@ export async function loadConnectionProfiles(): Promise<ConnectionProfile[]> {
 
   // Ensure default Data Work connection exists — but only when the
   // DP/ project structure already exists (connections.json was found
-  // above or the directory was previously created).  This prevents
-  // auto-creating DP/ folders in a brand-new project.
-  if (await fileExists(uri) || connections.length > 0) {
+  // above, connections were loaded, or the project has been initialized
+  // with ensureDPDirs).  This prevents auto-creating DP/ folders in
+  // a brand-new project.
+  if (await fileExists(uri) || connections.length > 0 || await isProjectInitialized()) {
     const defaultId = 'duck-piper-local-data-work';
 
     // Migration: Ensure existing duck-piper-local-data-work connection has isLocalDuckPiperCacheDb flag

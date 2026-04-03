@@ -103,6 +103,13 @@ export class ResultsViewProvider implements vscode.WebviewViewProvider {
         }
     }
 
+    public showNoEditor() {
+        this._activeDocUri = undefined;
+        if (this._view) {
+            this._view.webview.postMessage({ command: 'clearResults' });
+        }
+    }
+
     public postMessage(docUri: vscode.Uri, command: string, data: unknown) {
         const uriStr = docUri.toString();
 

@@ -56,6 +56,7 @@ import { queryIndex } from './queryLibrary/queryIndex';
 
 import { LocalDuckDBViewProvider } from './transform/localDuckDBView';
 import { ResultsViewProvider } from './results/resultsView';
+import { MarkdownViewProvider } from './markdown/markdownView';
 import { ERDViewProvider } from './erd/erdViewProvider';
 import { LineageViewProvider } from './pipelines/lineageViewProvider';
 import { updateProjectInitializedContext, isProjectInitialized } from './core/isProjectInitialized';
@@ -107,6 +108,13 @@ export async function activate(context: vscode.ExtensionContext): Promise<DuckPi
   const lineageViewProvider = new LineageViewProvider(context);
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider(LineageViewProvider.viewType, lineageViewProvider, {
+      webviewOptions: { retainContextWhenHidden: true }
+    })
+  );
+
+  const markdownViewProvider = new MarkdownViewProvider(context);
+  context.subscriptions.push(
+    vscode.window.registerWebviewViewProvider(MarkdownViewProvider.viewType, markdownViewProvider, {
       webviewOptions: { retainContextWhenHidden: true }
     })
   );
@@ -1681,8 +1689,11 @@ export async function activate(context: vscode.ExtensionContext): Promise<DuckPi
       // Update similar queries context
       await updateSimilarQueriesContext(editor);
 
-      if (!editor) return;
-      if (!isSqlDoc(editor.document)) return;
+      if (!editor || !isSqlDoc(editor.document)) {
+        resultsViewProvider.showNoEditor();
+        markdownViewProvider.showNoEditor();
+        return;
+      }
 
       // Auto-restore connection for the document
       const entry = queryIndex.getEntry(editor.document.uri);
@@ -1712,6 +1723,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<DuckPi
       // so we don't show stale results from potential previous run of another file.
       // (Assuming provider implementation of show(uri) handles updating existing view)
       resultsViewProvider.show(editor.document.uri);
+      markdownViewProvider.show(editor.document.uri);
     })
   );
 
@@ -1724,6 +1736,15 @@ export async function activate(context: vscode.ExtensionContext): Promise<DuckPi
       if (!isSqlDoc(evt.document)) return;
 
       await updateSimilarQueriesContext(editor);
+    })
+  );
+
+  // Follow active notebook editor for markdown panel
+  context.subscriptions.push(
+    vscode.window.onDidChangeActiveNotebookEditor(async (editor) => {
+      if (!editor) return;
+      if (editor.notebook.notebookType !== 'dp-notebook') return;
+      markdownViewProvider.show(editor.notebook.uri);
     })
   );
 
@@ -1785,6 +1806,19 @@ export async function activate(context: vscode.ExtensionContext): Promise<DuckPi
     vscode.commands.registerCommand("dp.ai.selectModel", async () => {
       const { selectAIModel } = require('./ai/aiService');
       await selectAIModel();
+    })
+  );
+
+  // Markdown Panel Commands
+  context.subscriptions.push(
+    vscode.commands.registerCommand("dp.markdown.focus", () => {
+      vscode.commands.executeCommand('dp.markdownView.focus');
+    }),
+    vscode.commands.registerCommand("dp.markdown.save", () => {
+      markdownViewProvider.save();
+    }),
+    vscode.commands.registerCommand("dp.markdown.reload", () => {
+      markdownViewProvider.reloadFromDisk();
     })
   );
 
