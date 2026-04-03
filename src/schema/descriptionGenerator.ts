@@ -86,15 +86,9 @@ export async function generateDescriptionsWithAI(context: vscode.ExtensionContex
         return;
     }
 
-    // 2. Prompt Scope
-    const scopeOptions = ['Tables + Columns', 'Tables only', 'Columns only'];
-    const scope = await vscode.window.showQuickPick(scopeOptions, {
-        placeHolder: 'Select generation scope'
-    });
-    if (!scope) return;
-
-    const includeTables = scope.includes('Tables');
-    const includeColumns = scope.includes('Columns');
+    // Always generate both tables and columns (scope picker removed per spec)
+    const includeTables = true;
+    const includeColumns = true;
 
     // 3. Plan Work
     // We will generate descriptions for ALL tables in the introspection file.

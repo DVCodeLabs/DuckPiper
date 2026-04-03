@@ -83,13 +83,13 @@ export class DPSqlCodelensProvider implements vscode.CodeLensProvider {
         const smallSpacer = "\u00A0";
 
         lenses.push(new vscode.CodeLens(range, {
-            title: `${spacer}$(output)${smallSpacer}Comment (AI)`,
+            title: `${spacer}$(output)${smallSpacer}Comment`,
             command: "dp.query.addInlineComments",
             arguments: [document.uri]
         }));
 
         lenses.push(new vscode.CodeLens(range, {
-            title: `${spacer}$(markdown)${smallSpacer}Document (AI)`,
+            title: `${spacer}$(markdown)${smallSpacer}Document`,
             command: "dp.query.generateMarkdownDoc",
             arguments: [document.uri]
         }));

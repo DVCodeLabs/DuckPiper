@@ -41,23 +41,18 @@ export async function generateMarkdownDoc(context: vscode.ExtensionContext) {
     const mdDoc = await vscode.workspace.openTextDocument(mdUri);
     await vscode.window.showTextDocument(mdDoc, { viewColumn: vscode.ViewColumn.Beside, preview: false });
 
-    const existingHash = readFrontmatterValue(mdDoc.getText(), "source_hash");
-    if (existingHash && existingHash !== sqlHash) {
-        const choice = await vscode.window.showWarningMessage(
-            "Doc was created for an older SQL version.",
-            "Regenerate",
-            "Cancel"
-        );
-        if (choice !== "Regenerate") return;
-    }
-
     const provider = await getConfiguredAIProvider(context, { requireConfigured: true });
     if (!provider) {
         const picked = await vscode.window.showWarningMessage(
-            "No AI provider configured.",
-            "Configure AI provider"
+            "No AI provider configured. Click Copy Prompt to paste it into your AI tool of choice.",
+            "Open AI Settings",
+            "Copy Prompt"
         );
-        if (picked) await openAiProviderSettings();
+        if (picked === "Open AI Settings") await openAiProviderSettings();
+        if (picked === "Copy Prompt") {
+            const { sendDocumentToChat } = require('./sendToChat');
+            await sendDocumentToChat(context);
+        }
         return;
     }
 
@@ -139,10 +134,15 @@ export async function generateNotebookMarkdownDoc(context: vscode.ExtensionConte
     const provider = await getConfiguredAIProvider(context, { requireConfigured: true });
     if (!provider) {
         const picked = await vscode.window.showWarningMessage(
-            "No AI provider configured.",
-            "Configure AI provider"
+            "No AI provider configured. Click Copy Prompt to paste it into your AI tool of choice.",
+            "Open AI Settings",
+            "Copy Prompt"
         );
-        if (picked) await openAiProviderSettings();
+        if (picked === "Open AI Settings") await openAiProviderSettings();
+        if (picked === "Copy Prompt") {
+            const { sendNotebookDocumentToChat } = require('./sendToChat');
+            await sendNotebookDocumentToChat(context);
+        }
         return;
     }
 
@@ -270,7 +270,7 @@ export async function openNotebookMarkdownDoc(_context: vscode.ExtensionContext)
     const mdUri = nbUri.with({ path: nbUri.path.replace(/\.dpnb$/i, '.md') });
 
     if (!(await fileExists(mdUri))) {
-        vscode.window.showInformationMessage("Description not generated yet. Click 'Create Description (AI)' first.");
+        vscode.window.showInformationMessage("Description not generated yet. Click 'Document Notebook' first.");
         return;
     }
 

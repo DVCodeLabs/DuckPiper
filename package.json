@@ -276,7 +276,7 @@
       },
       {
         "command": "dp.schema.generateDescriptionsWithAI",
-        "title": "DP: Generate Descriptions (AI)",
+        "title": "DP: Generate Descriptions",
         "icon": {
           "dark": "media/icons/lucide/dark/book-text.svg",
           "light": "media/icons/lucide/light/book-text.svg"
@@ -303,6 +303,27 @@
         "command": "dp.ai.selectModel",
         "title": "DP: Select AI Model",
         "icon": "$(hubot)"
+      },
+      {
+        "command": "dp.ai.sendCommentToChat",
+        "title": "DP: Copy Comment Prompt"
+      },
+      {
+        "command": "dp.ai.sendDocumentToChat",
+        "title": "DP: Copy Document Prompt"
+      },
+      {
+        "command": "dp.ai.sendSchemaDescriptionsToChat",
+        "title": "DP: Copy Description Prompt"
+      },
+      {
+        "command": "dp.ai.sendNotebookDocumentToChat",
+        "title": "DP: Copy Notebook Document Prompt"
+      },
+      {
+        "command": "dp.ai.importSchemaDescriptionResponses",
+        "title": "DP: Import Description Response",
+        "icon": "$(arrow-down)"
       },
       {
         "command": "dp.erd.open",
@@ -414,7 +435,7 @@
       },
       {
         "command": "dp.notebook.generateMarkdownDoc",
-        "title": "DP: Document (AI)",
+        "title": "DP: Document Notebook",
         "icon": "$(markdown)"
       },
       {
@@ -500,6 +521,31 @@
           "default": true,
           "description": "DuckPiper: Enable inline editing and save-back in resultsets when connection and result safety checks allow it."
         },
+        "dp.ai.backend": {
+          "type": "string",
+          "enum": [
+            "none",
+            "extensionManaged",
+            "vscodeChatModel",
+            "openai",
+            "anthropic",
+            "azureOpenAI",
+            "ollama",
+            "openaiCompatible"
+          ],
+          "default": "",
+          "enumDescriptions": [
+            "Disable AI features. Use Copy Prompt for manual fallback.",
+            "Use the extension-managed agent panel configuration.",
+            "Use VS Code Language Model / chat model providers.",
+            "Use OpenAI API directly.",
+            "Use Anthropic API directly.",
+            "Use Azure OpenAI API directly.",
+            "Use a local Ollama instance.",
+            "Use any OpenAI-compatible API endpoint."
+          ],
+          "markdownDescription": "DuckPiper: AI provider for all AI features. Leave empty for auto-detection based on your IDE. `extensionManaged` uses the agent panel. `vscodeChatModel` uses VS Code Language Models. Direct API providers require model and endpoint configuration."
+        },
         "dp.ai.provider": {
           "type": "string",
           "enum": [
@@ -512,7 +558,9 @@
             "openaiCompatible"
           ],
           "default": "vscode",
-          "description": "DuckPiper: AI provider selection."
+          "description": "DuckPiper: AI provider selection.",
+          "markdownDeprecationMessage": "**Deprecated:** Use `#dp.ai.backend#` instead. This setting will be auto-migrated on next activation.",
+          "deprecationMessage": "Deprecated: Use dp.ai.backend instead."
         },
         "dp.ai.model": {
           "type": "string",

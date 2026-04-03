@@ -22,10 +22,15 @@ export async function generateAndStreamInlineComments(
     const provider = await getConfiguredAIProvider(context, { requireConfigured: true });
     if (!provider) {
         const picked = await vscode.window.showWarningMessage(
-            "No AI provider configured.",
-            "Configure AI provider"
+            "No AI provider configured. Click Copy Prompt to paste it into your AI tool of choice.",
+            "Open AI Settings",
+            "Copy Prompt"
         );
-        if (picked) await openAiProviderSettings();
+        if (picked === "Open AI Settings") await openAiProviderSettings();
+        if (picked === "Copy Prompt") {
+            const { sendCommentToChat } = require('./sendToChat');
+            await sendCommentToChat(context);
+        }
         return;
     }
 

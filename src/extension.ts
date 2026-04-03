@@ -72,6 +72,10 @@ export async function activate(context: vscode.ExtensionContext): Promise<DuckPi
   Logger.initialize("DuckPiper");
   Logger.info("DuckPiper extension activating...");
 
+  // Migrate deprecated dp.ai.provider → dp.ai.backend
+  const { migrateAiProviderSetting } = await import('./ai/aiService');
+  await migrateAiProviderSetting();
+
   let projectInitializedAtStartup = false;
   let autoWelcomeShownThisSession = false;
   const tablePreviewContextByDocUri = new Map<string, {
@@ -2009,6 +2013,30 @@ export async function activate(context: vscode.ExtensionContext): Promise<DuckPi
       // Pass a fake item with schemaName='duck-piper-local-data-work' to trigger the specific logic
       // we added in generateDescriptionsWithAI
       await generateDescriptionsWithAI(context, { schemaName: 'duck-piper-local-data-work' });
+    })
+  );
+
+  // Copy Prompt fallback commands
+  context.subscriptions.push(
+    vscode.commands.registerCommand("dp.ai.sendCommentToChat", async () => {
+      const { sendCommentToChat } = require('./ai/sendToChat');
+      await sendCommentToChat(context);
+    }),
+    vscode.commands.registerCommand("dp.ai.sendDocumentToChat", async () => {
+      const { sendDocumentToChat } = require('./ai/sendToChat');
+      await sendDocumentToChat(context);
+    }),
+    vscode.commands.registerCommand("dp.ai.sendSchemaDescriptionsToChat", async (item: ExplorerItem) => {
+      const { sendSchemaDescriptionsToChat } = require('./ai/sendToChat');
+      await sendSchemaDescriptionsToChat(context, item);
+    }),
+    vscode.commands.registerCommand("dp.ai.sendNotebookDocumentToChat", async () => {
+      const { sendNotebookDocumentToChat } = require('./ai/sendToChat');
+      await sendNotebookDocumentToChat(context);
+    }),
+    vscode.commands.registerCommand("dp.ai.importSchemaDescriptionResponses", async () => {
+      const { importSchemaDescriptionResponses } = require('./schema/descriptionImporter');
+      await importSchemaDescriptionResponses(context);
     })
   );
 

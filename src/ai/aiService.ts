@@ -39,12 +39,155 @@ This is a mock response. Configure an AI provider to generate real content.
 
 type ProviderName = "vscode" | "openai" | "anthropic" | "azureOpenAI" | "ollama" | "openaiCompatible";
 
+export type AIProviderOption =
+    | "none"
+    | "extensionManaged"
+    | "vscodeChatModel"
+    | "openai"
+    | "anthropic"
+    | "azureOpenAI"
+    | "ollama"
+    | "openaiCompatible";
+
 interface ProviderConfig {
     provider: ProviderName;
     model: string;
     endpoint?: string;
     apiKey?: string;
     source: "agent" | "settings";
+}
+
+/** Maps the deprecated provider setting value to the new AIProviderOption value. */
+function mapLegacyProvider(provider: string): AIProviderOption {
+    if (provider === "vscode") return "vscodeChatModel";
+    if (provider === "none") return "none";
+    // openai, anthropic, azureOpenAI, ollama, openaiCompatible map 1:1
+    if (["openai", "anthropic", "azureOpenAI", "ollama", "openaiCompatible"].includes(provider)) {
+        return provider as AIProviderOption;
+    }
+    return "none";
+}
+
+/** Maps an AIProviderOption to the internal ProviderName used by HttpAIProvider / VscodeLmProvider. */
+function providerOptionToName(option: AIProviderOption): ProviderName | null {
+    switch (option) {
+        case "vscodeChatModel": return "vscode";
+        case "openai": return "openai";
+        case "anthropic": return "anthropic";
+        case "azureOpenAI": return "azureOpenAI";
+        case "ollama": return "ollama";
+        case "openaiCompatible": return "openaiCompatible";
+        default: return null; // "none" and "extensionManaged" handled separately
+    }
+}
+
+/**
+ * Detects whether the host IDE is stock VS Code or a bundled/custom IDE (e.g. VSCodium).
+ * Used to select appropriate defaults when no explicit backend is configured.
+ */
+function detectHostEnvironment(): "stockVSCode" | "bundledIDE" {
+    const appName = (vscode.env.appName || "").toLowerCase();
+    if (appName.includes("visual studio code")) {
+        return "stockVSCode";
+    }
+    // VSCodium, custom bundled IDEs, or any non-stock VS Code host
+    return "bundledIDE";
+}
+
+/**
+ * Migrates the deprecated `dp.ai.provider` setting to `dp.ai.backend`.
+ * Safe to call multiple times — no-ops if backend is already set.
+ */
+export async function migrateAiProviderSetting(): Promise<void> {
+    const config = vscode.workspace.getConfiguration('dp');
+    const current = config.get<string>('ai.backend', '');
+    if (current) return; // Already set, nothing to migrate
+
+    const legacyProvider = config.get<string>('ai.provider', '');
+    if (legacyProvider && legacyProvider !== 'vscode') {
+        // User had explicitly changed from default — migrate their choice
+        const mapped = mapLegacyProvider(legacyProvider);
+        await config.update('ai.backend', mapped, vscode.ConfigurationTarget.Global);
+        Logger.info(`Migrated dp.ai.provider="${legacyProvider}" to dp.ai.backend="${mapped}"`);
+    }
+    // If provider was default "vscode" or empty, leave backend empty for auto-detection
+}
+
+/**
+ * Resolves the effective AI provider, reading from settings with migration and host-aware defaults.
+ * This is the single source of truth for which AI provider to use.
+ */
+async function resolveAIProvider(context: vscode.ExtensionContext): Promise<{ provider: AIProviderOption; config: ProviderConfig | null }> {
+    const cfg = vscode.workspace.getConfiguration('dp');
+
+    // 1. Check new backend setting first
+    const option = cfg.get<string>('ai.backend', '');
+    if (option) {
+        return { provider: option as AIProviderOption, config: await resolveConfigForProvider(option as AIProviderOption, context) };
+    }
+
+    // 2. Fall back to legacy provider (shouldn't hit this after migration, but defensive)
+    const legacyProvider = cfg.get<string>('ai.provider', '');
+    if (legacyProvider && legacyProvider !== 'vscode') {
+        const mapped = mapLegacyProvider(legacyProvider);
+        return { provider: mapped, config: await resolveConfigForProvider(mapped, context) };
+    }
+
+    // 3. Auto-detect default by host environment
+    const host = detectHostEnvironment();
+    if (host === "stockVSCode") {
+        return { provider: "vscodeChatModel", config: await resolveConfigForProvider("vscodeChatModel", context) };
+    }
+
+    // Bundled IDE: prefer extensionManaged if agent panel is available
+    const agentCfg = await getAgentPanelConfig();
+    if (agentCfg) {
+        return { provider: "extensionManaged", config: agentCfg };
+    }
+
+    // Bundled IDE with no agent panel — check for a direct API provider in settings
+    const settingsCfg = await getSettingsConfig(context);
+    if (settingsCfg) {
+        const mapped = mapLegacyProvider(settingsCfg.provider);
+        return { provider: mapped, config: settingsCfg };
+    }
+
+    return { provider: "none", config: null };
+}
+
+/**
+ * Resolves the ProviderConfig for a given AI provider option.
+ */
+async function resolveConfigForProvider(option: AIProviderOption, context: vscode.ExtensionContext): Promise<ProviderConfig | null> {
+    if (option === "none") return null;
+
+    if (option === "extensionManaged") {
+        return resolveConfig(await getAgentPanelConfig());
+    }
+
+    if (option === "vscodeChatModel") {
+        // VscodeLmProvider doesn't need full config validation — model is optional
+        const config = vscode.workspace.getConfiguration('dp');
+        const model = config.get<string>('ai.model', '');
+        return { provider: "vscode", model, source: "settings" };
+    }
+
+    // Direct API providers: build config from settings using the mapped provider name
+    const provider = providerOptionToName(option);
+    if (!provider) return null;
+
+    const config = vscode.workspace.getConfiguration('dp');
+    const model = config.get<string>('ai.model', '');
+    const endpoint = config.get<string>('ai.endpoint', '');
+    const apiKey = await context.secrets.get('dp.ai.apiKey');
+
+    return resolveConfig({
+        provider,
+        model,
+        endpoint,
+        apiKey: apiKey || undefined,
+        source: "settings"
+    });
 }
 
 function normalizeBaseUrl(endpoint: string, defaultBase: string): string {
@@ -402,11 +545,15 @@ class VscodeLmProvider implements AIProvider {
         }
 
         if (!models || models.length === 0) {
+            const host = detectHostEnvironment();
+            const suggestion = host === "bundledIDE"
+                ? 'No VS Code chat models are available in this IDE. Choose another AI provider or use Copy Prompt.'
+                : 'No VS Code chat models available. Install a VS Code chat/model provider or choose another AI provider.';
             throw new Error(formatAIError(
                 'AI request',
                 'VS Code LM',
                 'No chat models available',
-                'Install a VS Code chat extension like GitHub Copilot'
+                suggestion
             ));
         }
 
@@ -606,8 +753,9 @@ export async function getConfiguredAIProvider(
     context: vscode.ExtensionContext,
     options?: { requireConfigured?: boolean }
 ): Promise<AIProvider | null> {
-    const cfg = await resolveProviderConfig(context);
-    if (!cfg) {
+    const { provider, config: cfg } = await resolveAIProvider(context);
+
+    if (provider === "none" || !cfg) {
         if (options?.requireConfigured) return null;
         return new MockAIProvider();
     }
