@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import { ConnectionProfile, SchemaIntrospection, SchemaModel, TableModel, ColumnModel, RoutineModel, ForeignKeyModel, IndexModel } from "../core/types";
-import { loadConnectionProfiles } from "./connectionStore";
+import { loadConnectionProfiles, getConnection } from "./connectionStore";
 import { loadSchemas } from "../schema/schemaStore";
 import { loadDescriptions } from "../schema/descriptionStore";
 import { isProjectInitialized } from "../core/isProjectInitialized";
@@ -81,7 +81,7 @@ export class ExplorerViewProvider implements vscode.TreeDataProvider<ExplorerIte
 
       return schemas
         .filter(s => showInternal || !INTERNAL_SCHEMAS.includes(s.name))
-        .map(s => ExplorerItem.fromSchemaModel(s, intro, element.isLocalDuckDB || false, this.context.extensionUri));
+        .map(s => ExplorerItem.fromSchemaModel(s, intro, element.isLocalDuckDB || false, this.context.extensionUri, element.profile!.allowCsvExport ?? true));
     }
 
     // Level 3: Folders (Children of Schema)
@@ -115,10 +115,12 @@ export class ExplorerViewProvider implements vscode.TreeDataProvider<ExplorerIte
       if (element.folderKind === "tables") {
         const safeName = getSafeName(introspection);
         const descriptions = await loadDescriptions(safeName);
+        const profile = await getConnection(introspection.connectionId);
+        const allowCsvExport = profile?.allowCsvExport ?? true;
         return element.schemaModel.tables.map(t => {
           const tableKey = `${schemaName}.${t.name}`;
           const desc = descriptions?.tables?.[tableKey]?.description;
-          return ExplorerItem.fromTable(t, schemaName, introspection, element.isLocalDuckDB || false, desc);
+          return ExplorerItem.fromTable(t, schemaName, introspection, element.isLocalDuckDB || false, desc, allowCsvExport);
         });
       }
 
@@ -360,7 +362,7 @@ export class ExplorerItem extends vscode.TreeItem {
   }
 
   // 3. Schema Node (Merged from SchemaItem)
-  static fromSchemaModel(s: SchemaModel, introspection: SchemaIntrospection, isLocalConnection = false, extensionUri?: vscode.Uri): ExplorerItem {
+  static fromSchemaModel(s: SchemaModel, introspection: SchemaIntrospection, isLocalConnection = false, extensionUri?: vscode.Uri, allowCsvExport: boolean = true): ExplorerItem {
     const shouldExpand = s.name === 'imports' || s.name === 'data_cache';
     const state = shouldExpand ? vscode.TreeItemCollapsibleState.Expanded : vscode.TreeItemCollapsibleState.Collapsed;
     const nodeId = `${introspection.connectionId}/${s.name}`;
@@ -396,8 +398,7 @@ export class ExplorerItem extends vscode.TreeItem {
     }
 
     // Context value matches package.json expectations (renamed to explorerView)
-    // "viewItem == dp.schema.schema"
-    item.contextValue = "dp.schema.schema";
+    item.contextValue = allowCsvExport === false ? "dp.schema.schema.nobackup" : "dp.schema.schema";
 
     return item;
   }
@@ -447,7 +448,7 @@ export class ExplorerItem extends vscode.TreeItem {
   }
 
   // 4. Table Node
-  static fromTable(t: TableModel, schemaName: string, introspection: SchemaIntrospection, isLocalConnection = false, description?: string): ExplorerItem {
+  static fromTable(t: TableModel, schemaName: string, introspection: SchemaIntrospection, isLocalConnection = false, description?: string, allowCsvExport: boolean = true): ExplorerItem {
     const __schemaName = schemaName;
     const nodeId = `${introspection.connectionId}/${schemaName}/${t.name}`;
     const item = new ExplorerItem(
@@ -480,6 +481,8 @@ export class ExplorerItem extends vscode.TreeItem {
       item.contextValue = "dp.schema.table.reserved";
     } else if (isLocalConnection) {
       item.contextValue = "dp.schema.table.local";
+    } else if (allowCsvExport === false) {
+      item.contextValue = "dp.schema.table.noexport";
     } else {
       item.contextValue = "dp.schema.table";
     }

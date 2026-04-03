@@ -320,6 +320,12 @@ async function exportTableCommand(item: TableExportItem | undefined, _context: v
         return;
     }
 
+    // Check server-side CSV export flag (SecureQL only)
+    if (profile.dialect === 'secureql' && profile.allowCsvExport === false) {
+        vscode.window.showInformationMessage("CSV export is not available for this connection.");
+        return;
+    }
+
     // 2. Prompt for location - default to Downloads folder
     const defaultName = `${tableName}.csv`;
     const homeDir = require('os').homedir();
@@ -539,8 +545,8 @@ async function backupRemoteSchema(item: BackupSchemaItem | undefined, extensionU
         return;
     }
 
-    // 3. Check CSV export permission
-    if (profile.allowCsvExport === false) {
+    // 3. Check CSV export permission (SecureQL only)
+    if (profile.dialect === 'secureql' && profile.allowCsvExport === false) {
         vscode.window.showInformationMessage('Schema backup is not available for this connection.');
         return;
     }

@@ -844,7 +844,7 @@
         },
         {
           "command": "dp.schema.createTable",
-          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && viewItem == dp.schema.schema",
+          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && (viewItem == dp.schema.schema || viewItem == dp.schema.schema.nobackup)",
           "group": "inline@0"
         },
         {
@@ -854,17 +854,17 @@
         },
         {
           "command": "dp.connection.introspect",
-          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && viewItem == dp.schema.schema",
+          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && (viewItem == dp.schema.schema || viewItem == dp.schema.schema.nobackup)",
           "group": "inline@1"
         },
         {
           "command": "dp.schema.generateDescriptionsWithAI",
-          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && viewItem == dp.schema.schema",
+          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && (viewItem == dp.schema.schema || viewItem == dp.schema.schema.nobackup)",
           "group": "inline@3"
         },
         {
           "command": "dp.erd.openSchema",
-          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && viewItem == dp.schema.schema",
+          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && (viewItem == dp.schema.schema || viewItem == dp.schema.schema.nobackup)",
           "group": "inline@2"
         },
         {
@@ -909,12 +909,12 @@
         },
         {
           "command": "dp.query.openTablePreview",
-          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && (viewItem == dp.schema.table || viewItem == dp.schema.table.local || viewItem == dp.schema.table.reserved)",
+          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && (viewItem == dp.schema.table || viewItem == dp.schema.table.local || viewItem == dp.schema.table.reserved || viewItem == dp.schema.table.noexport)",
           "group": "inline@0"
         },
         {
           "command": "dp.schema.editTable",
-          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && (viewItem == dp.schema.table || viewItem == dp.schema.table.local || viewItem == dp.schema.table.reserved)",
+          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && (viewItem == dp.schema.table || viewItem == dp.schema.table.local || viewItem == dp.schema.table.reserved || viewItem == dp.schema.table.noexport)",
           "group": "inline@1"
         },
         {
@@ -1037,22 +1037,22 @@
 
         {
           "command": "dp.connection.introspect",
-          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && viewItem == dp.schema.schema",
+          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && (viewItem == dp.schema.schema || viewItem == dp.schema.schema.nobackup)",
           "group": "1_schema@1"
         },
         {
           "command": "dp.schema.createTable",
-          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && viewItem == dp.schema.schema",
+          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && (viewItem == dp.schema.schema || viewItem == dp.schema.schema.nobackup)",
           "group": "1_schema@2"
         },
         {
           "command": "dp.erd.openSchema",
-          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && viewItem == dp.schema.schema",
+          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && (viewItem == dp.schema.schema || viewItem == dp.schema.schema.nobackup)",
           "group": "2_view@1"
         },
         {
           "command": "dp.schema.generateDescriptionsWithAI",
-          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && viewItem == dp.schema.schema",
+          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && (viewItem == dp.schema.schema || viewItem == dp.schema.schema.nobackup)",
           "group": "2_view@2"
         },
         {
@@ -1063,12 +1063,12 @@
 
         {
           "command": "dp.query.openTablePreview",
-          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && (viewItem == dp.schema.table || viewItem == dp.schema.table.local || viewItem == dp.schema.table.reserved)",
+          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && (viewItem == dp.schema.table || viewItem == dp.schema.table.local || viewItem == dp.schema.table.reserved || viewItem == dp.schema.table.noexport)",
           "group": "1_query@1"
         },
         {
           "command": "dp.schema.editTable",
-          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && (viewItem == dp.schema.table || viewItem == dp.schema.table.local || viewItem == dp.schema.table.reserved)",
+          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && (viewItem == dp.schema.table || viewItem == dp.schema.table.local || viewItem == dp.schema.table.reserved || viewItem == dp.schema.table.noexport)",
           "group": "2_manage@1"
         },
         {
@@ -1110,7 +1110,7 @@
         },
         {
           "command": "dp.schema.generateDescriptionsWithAI",
-          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && viewItem == dp.schema.schema",
+          "when": "(view == dp.explorerView || view == dp.explorerViewBuiltin) && (viewItem == dp.schema.schema || viewItem == dp.schema.schema.nobackup)",
           "group": "inline@10"
         },
         {
