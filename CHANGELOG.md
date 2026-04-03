@@ -43,3 +43,11 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ### Added
 - Added the ability to reuse existing connection details when adding a new connection.
+
+## [1.4.0] - 2026-04-03
+
+### Added
+- Welcome page improvements
+- Added better support in the UI actions for non-copilot AI extensions (Claude Code, Codex extensions)
+- Added a new Markdown section that is tied to the SQL query.
+- Changes for SecureQL connections.
