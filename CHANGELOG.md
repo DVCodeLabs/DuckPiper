@@ -51,3 +51,10 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - Added better support in the UI actions for non-copilot AI extensions (Claude Code, Codex extensions)
 - Added a new Markdown section that is tied to the SQL query.
 - Changes for SecureQL connections.
+
+## [1.4.1] - 2026-04-03
+
+### Added
+- Added settings to select Claude Code or Codex extensions for the AI provider.
+- You can now use Copilot, Claude Code extension, or Codex extension.
+- When using the Codex extension, the files are added as context and the prompt is automatically copied to your clipboard so you can paste it into chat.

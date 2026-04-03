@@ -1,5 +1,7 @@
 import * as vscode from "vscode";
+import * as path from "path";
 import { getConfiguredAIProvider, openAiProviderSettings } from "./aiService";
+import { createFileEditingBrokerPrompt, maybeHandleBrokerTask } from "./broker";
 import { loadConnectionProfiles } from "../connections/connectionStore";
 import { buildSchemaContext } from "./schemaContext";
 import { loadPromptTemplate, renderPrompt } from "./prompts";
@@ -19,6 +21,41 @@ export async function generateAndStreamInlineComments(
 
     const { connectionName, dialect, connectionId } = await resolveConnectionInfo(context, sqlDoc);
 
+    const schemaContext = await buildSchemaContext(sqlText, connectionId);
+
+    // We use a specific prompt that asks for a full rewrite with comments
+    const promptTemplate = await loadPromptTemplate("inlineComments");
+    const prompt = renderPrompt(promptTemplate, {
+        sql: sqlText,
+        dialect,
+        connection: connectionName,
+        schemaContext: schemaContext ? `Schema context:\n${schemaContext}` : ""
+    });
+
+    if (editor.document.isDirty) {
+        await editor.document.save();
+    }
+
+    const workspaceRoot = vscode.workspace.getWorkspaceFolder(sqlDoc.uri)?.uri.fsPath ?? vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? path.dirname(sqlDoc.uri.fsPath);
+    const brokerResult = await maybeHandleBrokerTask({
+        title: "Add inline SQL comments",
+        prompt: createFileEditingBrokerPrompt(prompt, {
+            workspaceRoot,
+            targetFiles: [sqlDoc.uri.fsPath],
+            primaryTarget: sqlDoc.uri.fsPath,
+            allowCommands: false
+        }),
+        workspaceRoot,
+        targetFiles: [sqlDoc.uri.fsPath],
+        expectedWriteTargets: [sqlDoc.uri.fsPath],
+        contextFiles: [sqlDoc.uri.fsPath],
+        primaryTarget: sqlDoc.uri.fsPath,
+        allowCommands: false
+    });
+    if (brokerResult?.handled) {
+        return;
+    }
+
     const provider = await getConfiguredAIProvider(context, { requireConfigured: true });
     if (!provider) {
         const picked = await vscode.window.showWarningMessage(
@@ -33,17 +70,6 @@ export async function generateAndStreamInlineComments(
         }
         return;
     }
-
-    const schemaContext = await buildSchemaContext(sqlText, connectionId);
-
-    // We use a specific prompt that asks for a full rewrite with comments
-    const promptTemplate = await loadPromptTemplate("inlineComments");
-    const prompt = renderPrompt(promptTemplate, {
-        sql: sqlText,
-        dialect,
-        connection: connectionName,
-        schemaContext: schemaContext ? `Schema context:\n${schemaContext}` : ""
-    });
 
     await vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,

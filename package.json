@@ -30,7 +30,7 @@
     "erd",
     "ai"
   ],
-  "version": "1.4.0",
+  "version": "1.4.1",
   "engines": {
     "vscode": "^1.96.0"
   },
@@ -305,6 +305,11 @@
         "icon": "$(hubot)"
       },
       {
+        "command": "dp.ai.selectInstalledExtension",
+        "title": "DP: Select Installed AI Extension",
+        "icon": "$(plug)"
+      },
+      {
         "command": "dp.ai.sendCommentToChat",
         "title": "DP: Copy Comment Prompt"
       },
@@ -557,6 +562,38 @@
             "Use any OpenAI-compatible API endpoint."
           ],
           "markdownDescription": "DuckPiper: AI provider for all AI features. Leave empty for auto-detection based on your IDE. `extensionManaged` uses the agent panel. `vscodeChatModel` uses VS Code Language Models. Direct API providers require model and endpoint configuration."
+        },
+        "dp.ai.broker": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "none",
+            "claudeExtension",
+            "codexExtension"
+          ],
+          "default": "auto",
+          "enumDescriptions": [
+            "Auto-select an installed extension broker when no direct AI backend is explicitly configured.",
+            "Disable broker-based AI integrations and use only the configured AI backend or manual fallback.",
+            "Use the Claude Code VS Code extension as a handoff target.",
+            "Use the Codex IDE extension as a handoff target."
+          ],
+          "markdownDescription": "DuckPiper: Broker for installed AI extensions. `auto` prefers the user's selected installed extension when available."
+        },
+        "dp.ai.installedExtensionChoice": {
+          "type": "string",
+          "enum": [
+            "",
+            "claudeExtension",
+            "codexExtension"
+          ],
+          "default": "",
+          "enumDescriptions": [
+            "No installed extension preference selected yet.",
+            "Prefer Claude Code when using installed-extension handoff.",
+            "Prefer Codex when using installed-extension handoff."
+          ],
+          "markdownDescription": "DuckPiper: Selected installed AI extension handoff target. Use command [DP: Select Installed AI Extension](command:dp.ai.selectInstalledExtension) to choose it."
         },
         "dp.ai.provider": {
           "type": "string",

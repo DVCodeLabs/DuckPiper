@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { SchemaIntrospection, TableModel } from '../core/types';
-import { getAIProvider } from '../ai/aiService';
+import { getConfiguredAIProvider, openAiProviderSettings } from '../ai/aiService';
 import { loadPromptTemplate, renderPrompt } from '../ai/prompts';
 import { SchemaDescriptionsFile, loadDescriptions, saveDescriptions } from './descriptionStore';
 import { Logger } from '../core/logger';
@@ -117,7 +117,20 @@ export async function generateDescriptionsWithAI(context: vscode.ExtensionContex
         };
     }
 
-    const ai = await getAIProvider(context);
+    const ai = await getConfiguredAIProvider(context, { requireConfigured: true });
+    if (!ai) {
+        const picked = await vscode.window.showWarningMessage(
+            "No AI provider configured. Click Copy Prompt to paste it into your AI tool of choice.",
+            "Open AI Settings",
+            "Copy Prompt"
+        );
+        if (picked === 'Open AI Settings') await openAiProviderSettings();
+        if (picked === 'Copy Prompt') {
+            const { sendSchemaDescriptionsToChat } = require('../ai/sendToChat');
+            await sendSchemaDescriptionsToChat(context, item);
+        }
+        return;
+    }
 
     vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,

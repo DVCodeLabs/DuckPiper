@@ -2,6 +2,16 @@ import * as vscode from 'vscode';
 import { Logger } from '../core/logger';
 import { formatAIError } from '../core/errorHandler';
 
+const CONFIG_SECTION = 'dp';
+
+async function updateConfig(key: string, value: string): Promise<void> {
+    const config = vscode.workspace.getConfiguration(CONFIG_SECTION);
+    await config.update(key, value, vscode.ConfigurationTarget.Global);
+    if (vscode.workspace.workspaceFolders?.length) {
+        await config.update(key, value, vscode.ConfigurationTarget.Workspace);
+    }
+}
+
 export interface AIProvider {
     generateCompletion(prompt: string): Promise<string>;
     streamCompletion?(prompt: string, onChunk: (chunk: string) => void): Promise<void>;
@@ -107,7 +117,7 @@ export async function migrateAiProviderSetting(): Promise<void> {
     if (legacyProvider && legacyProvider !== 'vscode') {
         // User had explicitly changed from default — migrate their choice
         const mapped = mapLegacyProvider(legacyProvider);
-        await config.update('ai.backend', mapped, vscode.ConfigurationTarget.Global);
+        await updateConfig('ai.backend', mapped);
         Logger.info(`Migrated dp.ai.provider="${legacyProvider}" to dp.ai.backend="${mapped}"`);
     }
     // If provider was default "vscode" or empty, leave backend empty for auto-detection
@@ -765,8 +775,7 @@ export async function getConfiguredAIProvider(
     if (cfg.provider === "ollama" && !cfg.model) {
         const picked = await pickOllamaModel(cfg.endpoint);
         if (picked) {
-            const config = vscode.workspace.getConfiguration('dp');
-            await config.update("ai.model", picked, vscode.ConfigurationTarget.Global);
+            await updateConfig("ai.model", picked);
             cfg.model = picked;
         }
     }
@@ -813,8 +822,7 @@ export async function selectAIModel(): Promise<void> {
         });
 
         if (picked) {
-            const config = vscode.workspace.getConfiguration("dp");
-            await config.update("ai.model", picked.family, vscode.ConfigurationTarget.Global);
+            await updateConfig("ai.model", picked.family);
             vscode.window.showInformationMessage(`AI Model set to: ${picked.family}`);
         }
 

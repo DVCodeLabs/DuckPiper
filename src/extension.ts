@@ -1806,6 +1806,10 @@ export async function activate(context: vscode.ExtensionContext): Promise<DuckPi
     vscode.commands.registerCommand("dp.ai.selectModel", async () => {
       const { selectAIModel } = require('./ai/aiService');
       await selectAIModel();
+    }),
+    vscode.commands.registerCommand("dp.ai.selectInstalledExtension", async () => {
+      const { selectInstalledExtensionChoice } = require('./ai/broker');
+      await selectInstalledExtensionChoice();
     })
   );
 

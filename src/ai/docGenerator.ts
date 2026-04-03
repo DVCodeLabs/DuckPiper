@@ -4,6 +4,7 @@ import { canonicalizeSql } from '../core/hashing';
 import { fileExists } from '../core/fsWorkspace';
 import { loadConnectionProfiles } from '../connections/connectionStore';
 import { getConfiguredAIProvider, openAiProviderSettings } from './aiService';
+import { createFileEditingBrokerPrompt, maybeHandleBrokerTask } from './broker';
 import { buildSchemaContext } from './schemaContext';
 import { loadPromptTemplate, renderPrompt } from './prompts';
 import { ErrorHandler, ErrorSeverity, formatAIError } from '../core/errorHandler';
@@ -43,6 +44,35 @@ export async function generateMarkdownDoc(context: vscode.ExtensionContext) {
         await MarkdownViewProvider.current.showAndFocus(sqlUri);
     }
 
+    const schemaContext = await buildSchemaContext(sqlText, connectionId);
+    const promptTemplate = await loadPromptTemplate("markdownDoc");
+    const prompt = renderPrompt(promptTemplate, {
+        sql: sqlText,
+        dialect,
+        connection: connectionName,
+        schemaContext: schemaContext ? `Schema context:\n${schemaContext}` : ""
+    });
+
+    const workspaceRoot = vscode.workspace.getWorkspaceFolder(sqlUri)?.uri.fsPath ?? vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? path.dirname(sqlUri.fsPath);
+    const brokerResult = await maybeHandleBrokerTask({
+        title: "Generate SQL Markdown documentation",
+        prompt: createFileEditingBrokerPrompt(prompt, {
+            workspaceRoot,
+            targetFiles: [mdUri.fsPath],
+            primaryTarget: mdUri.fsPath,
+            allowCommands: false
+        }),
+        workspaceRoot,
+        targetFiles: [mdUri.fsPath],
+        expectedWriteTargets: [mdUri.fsPath],
+        contextFiles: [sqlUri.fsPath, mdUri.fsPath],
+        primaryTarget: mdUri.fsPath,
+        allowCommands: false
+    });
+    if (brokerResult?.handled) {
+        return;
+    }
+
     const provider = await getConfiguredAIProvider(context, { requireConfigured: true });
     if (!provider) {
         const picked = await vscode.window.showWarningMessage(
@@ -57,15 +87,6 @@ export async function generateMarkdownDoc(context: vscode.ExtensionContext) {
         }
         return;
     }
-
-    const schemaContext = await buildSchemaContext(sqlText, connectionId);
-    const promptTemplate = await loadPromptTemplate("markdownDoc");
-    const prompt = renderPrompt(promptTemplate, {
-        sql: sqlText,
-        dialect,
-        connection: connectionName,
-        schemaContext: schemaContext ? `Schema context:\n${schemaContext}` : ""
-    });
 
     await vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,
@@ -133,27 +154,7 @@ export async function generateNotebookMarkdownDoc(context: vscode.ExtensionConte
 
     const joinedContent = cellContents.join("\n\n");
 
-    const provider = await getConfiguredAIProvider(context, { requireConfigured: true });
-    if (!provider) {
-        const picked = await vscode.window.showWarningMessage(
-            "No AI provider configured. Click Copy Prompt to paste it into your AI tool of choice.",
-            "Open AI Settings",
-            "Copy Prompt"
-        );
-        if (picked === "Open AI Settings") await openAiProviderSettings();
-        if (picked === "Copy Prompt") {
-            const { sendNotebookDocumentToChat } = require('./sendToChat');
-            await sendNotebookDocumentToChat(context);
-        }
-        return;
-    }
-
-    const promptTemplate = await loadPromptTemplate("notebookMarkdownDoc");
-    const prompt = renderPrompt(promptTemplate, {
-        cellContent: joinedContent
-    });
-
-    // Create file if not exists or prep context
+    // Create file if not exists or prep context before broker/provider execution.
     const title = path.basename(nbUri.fsPath).replace(/\.dpnb$/i, '');
     const prettyTitle = title.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
     const today = new Date().toISOString().split('T')[0];
@@ -170,13 +171,52 @@ export async function generateNotebookMarkdownDoc(context: vscode.ExtensionConte
         ""
     ].join("\n");
 
-    // Write initial header if file missing
     if (!(await fileExists(mdUri))) {
         await vscode.workspace.fs.writeFile(mdUri, Buffer.from(header + "\n", "utf8"));
     }
 
+    const promptTemplate = await loadPromptTemplate("notebookMarkdownDoc");
+    const prompt = renderPrompt(promptTemplate, {
+        cellContent: joinedContent
+    });
+
     if (MarkdownViewProvider.current) {
         await MarkdownViewProvider.current.showAndFocus(nbUri);
+    }
+
+    const workspaceRoot = vscode.workspace.getWorkspaceFolder(nbUri)?.uri.fsPath ?? vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? path.dirname(nbUri.fsPath);
+    const brokerResult = await maybeHandleBrokerTask({
+        title: "Generate notebook Markdown documentation",
+        prompt: createFileEditingBrokerPrompt(prompt, {
+            workspaceRoot,
+            targetFiles: [mdUri.fsPath],
+            primaryTarget: mdUri.fsPath,
+            allowCommands: false
+        }),
+        workspaceRoot,
+        targetFiles: [mdUri.fsPath],
+        expectedWriteTargets: [mdUri.fsPath],
+        contextFiles: [nbUri.fsPath, mdUri.fsPath],
+        primaryTarget: mdUri.fsPath,
+        allowCommands: false
+    });
+    if (brokerResult?.handled) {
+        return;
+    }
+
+    const provider = await getConfiguredAIProvider(context, { requireConfigured: true });
+    if (!provider) {
+        const picked = await vscode.window.showWarningMessage(
+            "No AI provider configured. Click Copy Prompt to paste it into your AI tool of choice.",
+            "Open AI Settings",
+            "Copy Prompt"
+        );
+        if (picked === "Open AI Settings") await openAiProviderSettings();
+        if (picked === "Copy Prompt") {
+            const { sendNotebookDocumentToChat } = require('./sendToChat');
+            await sendNotebookDocumentToChat(context);
+        }
+        return;
     }
 
     await vscode.window.withProgress({
