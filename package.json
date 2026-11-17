@@ -1263,7 +1263,7 @@
     "@typescript-eslint/eslint-plugin": "^8.17.0",
     "@typescript-eslint/parser": "^8.17.0",
     "@vscode/test-electron": "^2.5.2",
-    "@vscode/vsce": "^3.3.2",
+    "@vscode/vsce": "^4.1.1",
     "ag-grid-community": "^35.0.1",
     "ag-grid-react": "^35.0.1",
     "chart.js": "^4.5.1",
